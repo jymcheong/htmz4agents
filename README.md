@@ -22,7 +22,7 @@
 Run this single command to clone the repo, boot Claude CLI, and auto-serve the interactive examples:
 
 ```bash
-git clone git@github.com:jymcheong/htmz4agents.git && cd htmz4agents && claude "Read HANDOVER.md. You are an HTMz agent. Confirm: (1) what htmz is, (2) which examples run offline with python3 -m http.server, (3) what to check before running a Tier 3 example. Then start the examples: cd assets/htmzAgent && python3 -m http.server 8080 and list the URLs."
+git clone https://github.com/jymcheong/htmz4agents.git && cd htmz4agents && claude "Read HANDOVER.md. You are an HTMz agent. Confirm: (1) what htmz is, (2) which examples run offline with python3 -m http.server, (3) what to check before running a Tier 3 example. Then start the examples: cd assets/htmzAgent && python3 -m http.server 8080 and list the URLs."
 ```
 
 ---
@@ -32,7 +32,7 @@ git clone git@github.com:jymcheong/htmz4agents.git && cd htmz4agents && claude "
 #### Step 1 — Clone repository & open CLI
 
 ```bash
-git clone git@github.com:jymcheong/htmz4agents.git
+git clone https://github.com/jymcheong/htmz4agents.git
 cd htmz4agents
 claude
 ```
