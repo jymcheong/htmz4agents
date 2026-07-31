@@ -1,6 +1,6 @@
 # Skills Index
 
-> 8 skills shipped in `skills/` — frontend/dev-loop procedures for building and reviewing htmz-based UIs with an agent. `router-htmz` is the entry point; the other 5 frontend skills are also directly invocable.
+> 7 skills shipped in `skills/` — frontend/dev-loop procedures for building and reviewing htmz-based UIs with an agent. `router-htmz` is the entry point; the other 5 frontend skills are also directly invocable.
 
 | Skill | Type | Category | Description |
 |---|---|---|---|
@@ -10,7 +10,6 @@
 | `animejs/SKILL.md` | on-demand | FRONTEND | Driving CSS/SVG/DOM animation with Anime.js; wiring three-phase animations into htmz partial swaps. |
 | `getdesign/SKILL.md` | on-demand | FRONTEND | Drop a `DESIGN.md` from a catalogued site (or an arbitrary URL) into a project, then build UI matching that design system. |
 | `chrome-visual-test/SKILL.md` | on-demand | FRONTEND | Real-browser UI verification via Claude-in-Chrome MCP — required (not the preview panel) for CDN-loaded CSS, Google Fonts, or GPU-composited effects, which the preview panel renders degraded or blank. |
-| `bonsai-task/SKILL.md` | on-demand | DEV | Drive a local Bonsai 27B LLM (llama-server) as a tmux Claude Code session for bounded htmz/HTML/JS coding tasks — no cloud dispatch, local git tracking only. |
 | `preview/SKILL.md` | on-demand | DEV | Serve any generated artifact (image, HTML deck, markdown) as a reachable URL via the htmz-wiki-viewer process — `/view/` for markdown, `/raw/` for everything else. |
 
 ## Relations

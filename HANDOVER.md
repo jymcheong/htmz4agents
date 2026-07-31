@@ -163,7 +163,6 @@ python3 -m http.server 8080
 | Add Anime.js animation | `skills/router-htmz/SKILL.md` → animejs |
 | Match a site's design system | `skills/router-htmz/SKILL.md` → getdesign |
 | Visual screenshot / UI verify | `skills/router-htmz/SKILL.md` → chrome-visual-test |
-| Run a task on Bonsai 27B LLM | `skills/bonsai-task/SKILL.md` |
 | Get a preview URL for a file | `skills/preview/SKILL.md` |
 
 ---
