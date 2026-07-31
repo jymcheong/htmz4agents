@@ -6,6 +6,20 @@
 
 ---
 
+## 👔 For Backend Devs Building Internal Apps
+
+You don't want a frontend job. You want a dashboard, an admin panel, a status page — done, shipped, moved on.
+
+* **Every AI model is fluent in this.** HTML and vanilla JS are the most-trained-on languages on the internet — any model writes them correctly on the first try. React/JSX/hooks are a much smaller, faster-moving slice of that training data, so agent-generated React breaks more often and needs more correction.
+* **No build step.** No `npm install`, no bundler config, no version-conflict debugging. Edit HTML, refresh browser, done.
+* **One file, one mental model.** Your server renders HTML; htmz swaps it in. No component tree, no state management library, no prop-drilling to trace.
+* **You already know this stack.** It's HTML + your existing backend routes. Nothing new to learn beyond the 166-byte snippet.
+* **Nothing breaks on its own.** No framework major-version upgrades to track, no deprecated hooks, no toolchain churn eating your afternoon.
+
+If your job is the backend and the frontend is a means to an end, this is the fastest path to "internal app that works" — not the fastest path to "frontend expertise."
+
+---
+
 ## 🚀 Key Highlights
 
 * **166 Bytes Framework Overhead:** No React, no virtual DOM, no heavy bundlers.
