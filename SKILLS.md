@@ -1,11 +1,20 @@
 # Skills Index
-> count: 131 total (skills/ directory count — routers included)
-> router coverage: router-media → 12 specialist skills; router-diagram → 11 specialist skills; router-basecoat → 3 specialist skills; router-htmz → 5 specialist skills (not separately listed — access via router only); router-binary-re → 4 specialist skills
-> Semantic index of all available skills. Loaded at startup alongside KNOWLEDGE-INDEX.md.
-> Use this to match user requests to skill files — no need to list skills/ directory.
-> Update when skills are created or modified.
-> **Category** legend: `CORE` = backbone, breaks gate/memory/git integrity if missing · `BOT-FLEET` = multi-bot NATS coordination · `GIT` = git ops beyond core cnp/gp · `MEMORY` = knowledge/session writes · `DEV` = coding/build/review tooling · `DESIGN` = frontend/UI/UX design systems and critique · `DIAGRAM` = Mermaid/Excalidraw visual output · `MEDIA` = TTS/image/video/audio gen · `RESEARCH` = web/arxiv/ideation · `OPS` = sysadmin/deploy/monitoring · `BINARY-RE` = binary reverse engineering, malware analysis, Windows endpoint investigation · `INTEGRATION` = 3rd-party app CRUD (Notion, NotebookLM)
-> **Flag activation**: Core categories (CORE/BOT-FLEET/GIT/MEMORY) always loaded. Optional categories (all others) require `touch ~/.alfred/skills-opt-in/<skill-name>`. See `bin/skill-flag` helper. Fallback: no flag dir → full index.
-| bonsai-task/SKILL.md | on-demand | DEV | Use when: "bonsai: <task>", "run on bonsai", "use bonsai for", "bonsai do". — Drive Bonsai 27B (llama-server on pop :8083) as a tmux Claude Code session for bounded htmz/HTML/JS frontend coding tasks. Local git tracking in ~/bonsai-work — no remote push. Steps: health check → ensure tmux session → send task via paste-buffer → poll pane for idle → git diff + commit. |
-| preview/SKILL.md | on-demand | DEV | Use when: "preview this", "show me this file", "url to view this image/deck/infographic", "preview the infographic", "preview the HTML deck". — Serve any generated artifact (image, HTML deck, or markdown) as a reachable URL via the already-running htmz-wiki-viewer pm2 process (port 8790) — markdown uses existing `/view/`, non-markdown uses new `/raw/` passthrough route added 2026-07-01. Closes the gap where quartz-view/htmz-wiki-viewer only ever rendered markdown. |
-| router-htmz/SKILL.md | on-demand | DEV | Use when: "build frontend", "create htmz UI", "htmz fragment", "add tab", "frontend work", "review htmz", "check htmz example", "htmz quality check", "animate this", "add animejs animation", "use animejs", "animating with animejs", "htmz", "frontend", "get design for", "copy site style", "match site look", "drop a DESIGN.md", "does it look right", "verify UI", "test in browser", "UI screenshot", "check the page", "check the frontend". — Router: table picks specialist skill by intent (build/review/animate/design/visual-QA). 5 specialist skills: htmz-frontend, htmz-review, animejs, getdesign, chrome-visual-test. |
+
+> 8 skills shipped in `skills/` — frontend/dev-loop procedures for building and reviewing htmz-based UIs with an agent. `router-htmz` is the entry point; the other 5 frontend skills are also directly invocable.
+
+| Skill | Type | Category | Description |
+|---|---|---|---|
+| `router-htmz/SKILL.md` | router | FRONTEND | Single-hop router — matches "build frontend", "review htmz", "animate this", "get design for", "screenshot/verify UI" style requests to the correct specialist skill below. |
+| `htmz-frontend/SKILL.md` | on-demand | FRONTEND | Procedural guidance for building htmz + Basecoat UIs — enforces Patterns 1, 6, 13, 14 (fragment→API, DOM as state, error handling) for robust partial swaps. |
+| `htmz-review/SKILL.md` | on-demand | FRONTEND | Pre-delivery quality gate — 10-point checklist (swap isolation, dialog placement, event bridge, Alpine auto-init, empty states, fragment hygiene). Run before declaring any htmz work "done". |
+| `animejs/SKILL.md` | on-demand | FRONTEND | Driving CSS/SVG/DOM animation with Anime.js; wiring three-phase animations into htmz partial swaps. |
+| `getdesign/SKILL.md` | on-demand | FRONTEND | Drop a `DESIGN.md` from a catalogued site (or an arbitrary URL) into a project, then build UI matching that design system. |
+| `chrome-visual-test/SKILL.md` | on-demand | FRONTEND | Real-browser UI verification via Claude-in-Chrome MCP — required (not the preview panel) for CDN-loaded CSS, Google Fonts, or GPU-composited effects, which the preview panel renders degraded or blank. |
+| `bonsai-task/SKILL.md` | on-demand | DEV | Drive a local Bonsai 27B LLM (llama-server) as a tmux Claude Code session for bounded htmz/HTML/JS coding tasks — no cloud dispatch, local git tracking only. |
+| `preview/SKILL.md` | on-demand | DEV | Serve any generated artifact (image, HTML deck, markdown) as a reachable URL via the htmz-wiki-viewer process — `/view/` for markdown, `/raw/` for everything else. |
+
+## Relations
+
+- Frontend build/patterns reference: [`assets/htmzAgent/PATTERNS.md`](assets/htmzAgent/PATTERNS.md)
+- Runnable examples cross-referenced by pattern number: [`assets/htmzAgent/PATTERNS.md#examples-index`](assets/htmzAgent/PATTERNS.md)
+- Runtime tiers + quickstart: [`HANDOVER.md`](HANDOVER.md)
