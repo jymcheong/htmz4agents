@@ -47,6 +47,18 @@ That's it! The agent reads `HANDOVER.md`, orients itself across the 4 runtime ti
 
 ---
 
+## 🎬 Demo (No Clone Needed)
+
+Preview a few self-contained examples instantly in your browser — no clone, no server, via [htmlpreview.github.io](https://htmlpreview.github.io):
+
+* **[theme-switch](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jymcheong/htmz4agents/main/assets/htmzAgent/examples/theme-switch/index.html)** — pure client-side light/dark toggle, zero network calls.
+* **[static-demo](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jymcheong/htmz4agents/main/assets/htmzAgent/examples/static-demo/index.html)** — pre-canned host-detail view (no-backend variant of the fetch-based example).
+* **[confirm-dialog](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jymcheong/htmz4agents/main/assets/htmzAgent/examples/confirm-dialog/index.html)** — confirm/cancel dialog pattern backed by a real public API ([jsonplaceholder.typicode.com](https://jsonplaceholder.typicode.com)).
+
+> Note: `raw.githubusercontent.com` always serves files as `text/plain` with `nosniff` — browsers refuse to render `.html` directly from it. `htmlpreview.github.io` proxies with the correct `text/html` content-type instead. Examples that call a local backend endpoint (`card-accordion`, `basecoat`, `sse`, etc.) won't work through this proxy — clone + run `python3 -m http.server` for those (see Quickstart above).
+
+---
+
 ## 📚 Documentation & Reference
 
 * **[HANDOVER.md](HANDOVER.md)** — Core asset handover guide (runtime tiers, quickstart commands, skill router mapping).
