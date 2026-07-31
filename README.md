@@ -47,6 +47,18 @@ That's it! The agent reads `HANDOVER.md`, orients itself across the 4 runtime ti
 
 ---
 
+## 🎬 Demo (No Clone Needed)
+
+Live via GitHub Pages, no clone or local server required:
+
+* **[theme-switch](https://jym.sg/htmz4agents/assets/htmzAgent/examples/theme-switch/index.html)** — pure client-side light/dark toggle, zero network calls.
+* **[static-demo](https://jym.sg/htmz4agents/assets/htmzAgent/examples/static-demo/index.html)** — pre-canned host-detail view (no-backend variant).
+* **[confirm-dialog](https://jym.sg/htmz4agents/assets/htmzAgent/examples/confirm-dialog/index.html)** — confirm/cancel dialog backed by a real public API ([jsonplaceholder.typicode.com](https://jsonplaceholder.typicode.com)).
+
+Examples that call a local backend endpoint (`card-accordion`, `basecoat`, `sse`, etc.) still need a clone + `python3 -m http.server` (see Quickstart above).
+
+---
+
 ## 📚 Documentation & Reference
 
 * **[HANDOVER.md](HANDOVER.md)** — Core asset handover guide (runtime tiers, quickstart commands, skill router mapping).
