@@ -1,0 +1,111 @@
+<div id="card-container" class="host-card critical">
+  <div class="card-body">
+    <div class="top-row">
+      <div>
+        <div class="hostname">ENDPOINT-001</div>
+        <div class="host-sub">Internet-facing · Windows Server 2019 · Finance zone</div>
+      </div>
+      <div class="badge-group">
+        <span class="badge-critical">Critical</span>
+        <span class="badge-urgent">Patch Now</span>
+      </div>
+    </div>
+
+    <div class="verdict-block">
+      <p>Active exploit in the wild targets this host's unpatched RDP stack. It is internet-facing with no compensating control. Patch before end of day or isolate immediately — this is the most likely entry point in your estate.</p>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-pill"><span class="stat-label">CVSS</span><div class="stat-divider"></div><span class="stat-value">9.8</span></div>
+      <div class="stat-pill"><span class="stat-label">EPSS</span><div class="stat-divider"></div><span class="stat-value">0.94</span></div>
+      <div class="stat-pill"><span class="stat-label">KEV</span><div class="stat-divider"></div><span class="stat-value">✓ Yes</span></div>
+      <div class="stat-pill"><span class="stat-label">Exposure</span><div class="stat-divider"></div><span class="stat-value">Internet</span></div>
+      <div class="stat-pill"><span class="stat-label">CVEs</span><div class="stat-divider"></div><span class="stat-value">7</span></div>
+    </div>
+  </div>
+
+  <button class="accordion-toggle" onclick="toggleAccordion(this)" aria-expanded="false">
+    <span>See detail</span>
+    <span class="accordion-arrow">▾</span>
+  </button>
+
+  <div class="detail-panel">
+    <div class="detail-inner">
+
+      <div class="detail-section">
+        <div class="detail-heading">AI Reasoning</div>
+        <p>This host scores P0 across all four SSVC decision points. Exploitation is active — CVE-2025-0381 appears in CISA KEV as of 2025-03-14. Exposure is internet-addressable with RDP port 3389 open on the public interface. Mission impact is critical — Finance zone hosts payment processing services. No compensating controls (MFA, network segmentation, jump host) recorded in asset context.</p>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-heading">Active CVEs</div>
+        <div class="cve-item">
+          <div class="cve-id">CVE-2025-0381</div>
+          <div class="cve-meta">
+            <div class="cve-desc">RDP pre-auth remote code execution via heap overflow in termdd.sys</div>
+            <div class="cve-tags">
+              <span class="cve-tag exploited">Exploited in wild</span>
+              <span class="cve-tag">KEV</span><span class="cve-tag">RCE</span>
+            </div>
+          </div>
+          <div class="cve-score score-critical">9.8</div>
+        </div>
+        <div class="cve-item">
+          <div class="cve-id">CVE-2024-4892</div>
+          <div class="cve-meta">
+            <div class="cve-desc">Windows NTLM hash relay via crafted SMB response</div>
+            <div class="cve-tags"><span class="cve-tag">Public PoC</span><span class="cve-tag">LPE</span></div>
+          </div>
+          <div class="cve-score score-high">7.5</div>
+        </div>
+        <div class="cve-item">
+          <div class="cve-id">CVE-2024-3310</div>
+          <div class="cve-meta">
+            <div class="cve-desc">Local privilege escalation via Print Spooler null pointer dereference</div>
+            <div class="cve-tags"><span class="cve-tag">LPE</span><span class="cve-tag">Kernel</span></div>
+          </div>
+          <div class="cve-score score-high">7.2</div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-heading">Recommended Actions</div>
+        <ol class="action-steps">
+          <li>Apply KB5034441 — closes CVE-2025-0381</li>
+          <li>Restrict RDP to jump host only — block 3389 at perimeter firewall</li>
+          <li>Enable Network Level Authentication (NLA) as interim control</li>
+          <li>Raise CAB ticket — 24–48 hr change window required</li>
+        </ol>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-heading">Asset Context</div>
+        <div class="context-grid">
+          <span class="ctx-label">Owner</span><span class="ctx-value">finance-ops@company.com</span>
+          <span class="ctx-label">Change Window</span><span class="ctx-value">Weekdays 22:00–02:00 SGT</span>
+          <span class="ctx-label">Mission Impact</span><span class="ctx-value">Critical — payment processing</span>
+          <span class="ctx-label">Last Scanned</span><span class="ctx-value">2026-04-30 05:14</span>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-heading">Actions</div>
+        <div class="action-btn-row">
+          <button class="action-btn btn-notify"
+                  onclick="callAPI('inform-owner', 'ENDPOINT-001', 'finance-ops@company.com')">
+            ✉ Inform Owner
+          </button>
+          <button class="action-btn btn-rescan"
+                  onclick="callAPI('rescan', 'ENDPOINT-001', null)">
+            ↺ Rescan Asset
+          </button>
+          <button class="action-btn" style="background:#21060a; border-color:rgba(248,81,73,0.3); color:#ff7b72"
+                  onclick="callAPI('error-sim', 'ENDPOINT-001', null)">
+            ⚠ Sim Error
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

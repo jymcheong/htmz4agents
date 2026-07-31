@@ -1,0 +1,80 @@
+<div id="performance-content" class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center w-full">
+  
+  <!-- Left Side: Performance Info -->
+  <div class="space-y-6 text-center md:text-left">
+    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-violet-500/10 text-violet-400 border border-violet-500/20 uppercase tracking-widest">
+      Efficiency Metrics
+    </span>
+    <h2 class="text-3xl md:text-4xl font-extrabold font-title tracking-tight text-white leading-tight">
+      Unprecedented Compact Precision.
+    </h2>
+    <p class="text-zinc-400 text-sm leading-relaxed">
+      Empowered by Forge-style execution scaffolds, small 8B models achieve up to 99.3% task completion, outperforming raw Claude Sonnet while optimizing context retention via tiered budget compaction.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start pt-2">
+      <div class="flex items-center gap-2 text-zinc-300 text-xs">
+        <span class="w-2 h-2 rounded-full bg-violet-400"></span>
+        <span>Tiered VRAM Compaction</span>
+      </div>
+      <div class="flex items-center gap-2 text-zinc-300 text-xs">
+        <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+        <span>99.3% Accuracy on 8B</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Animated SVG Charts & Gauges -->
+  <div id="perf-charts" class="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 relative w-full">
+    
+    <!-- Circular gauge with counting percentage -->
+    <div class="relative w-40 h-40 flex items-center justify-center">
+      <svg class="w-full h-full transform -rotate-90">
+        <!-- Background track -->
+        <circle cx="80" cy="80" r="65" stroke="#1f2937" stroke-width="8" fill="none" />
+        <!-- Glowing gradient success ring -->
+        <circle cx="80" cy="80" r="65" stroke="url(#violet-grad)" stroke-width="8" fill="none" stroke-linecap="round" class="progress-ring transition-all duration-300" />
+        
+        <defs>
+          <linearGradient id="violet-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#8b5cf6" />
+            <stop offset="100%" stop-color="#ec4899" />
+          </linearGradient>
+        </defs>
+      </svg>
+      
+      <!-- Counter overlay in center -->
+      <div class="absolute inset-0 flex flex-col items-center justify-center">
+        <span id="success-percentage" class="text-3xl font-extrabold font-title tracking-tight text-white neon-text-indigo">0.0%</span>
+        <span class="text-[10px] text-zinc-500 uppercase tracking-widest mt-0.5">Task Success</span>
+      </div>
+    </div>
+
+    <!-- Comparative Staggered Bar Charts -->
+    <div class="flex items-end justify-center gap-4 h-40 text-center w-full max-w-[200px]">
+      
+      <!-- Bar 1: Raw 8B (53%) -->
+      <div class="flex flex-col items-center justify-end h-full flex-grow">
+        <span class="text-[10px] text-zinc-400 mb-1">53.0%</span>
+        <div class="w-8 bg-zinc-800 border border-zinc-700/50 rounded-t-md chart-bar origin-bottom" style="height: 53%; transform-origin: bottom; transform: scaleY(0);"></div>
+        <span class="text-[9px] text-zinc-500 mt-2 tracking-tighter">Raw 8B</span>
+      </div>
+      
+      <!-- Bar 2: Claude Sonnet (87.2%) -->
+      <div class="flex flex-col items-center justify-end h-full flex-grow">
+        <span class="text-[10px] text-zinc-400 mb-1">87.2%</span>
+        <div class="w-8 bg-indigo-950 border border-indigo-800/30 rounded-t-md chart-bar origin-bottom" style="height: 87.2%; transform-origin: bottom; transform: scaleY(0);"></div>
+        <span class="text-[9px] text-zinc-500 mt-2 tracking-tighter">Sonnet</span>
+      </div>
+      
+      <!-- Bar 3: 8B + Scaffolding (99.3%) -->
+      <div class="flex flex-col items-center justify-end h-full flex-grow">
+        <span class="text-[10px] text-violet-300 font-semibold mb-1">99.3%</span>
+        <div class="w-8 bg-gradient-to-t from-violet-600 to-pink-500 rounded-t-md chart-bar origin-bottom shadow-lg shadow-violet-500/10" style="height: 99.3%; transform-origin: bottom; transform: scaleY(0);"></div>
+        <span class="text-[9px] text-violet-400 font-medium mt-2 tracking-tighter">8B+Scaff</span>
+      </div>
+      
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AVARA · Endpoint Controller (Notion Style)</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@latest/dist/basecoat.cdn.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/basecoat-css@latest/dist/js/all.min.js" defer></script>
+
+  <style>
+    /* ── Notion design tokens ───────────────────────────────────────── */
+    :root {
+      --bg:            #ffffff;
+      --sidebar:       #f6f5f4;
+      --surface:       #ffffff;
+      --surface-hover: #efedea;
+      --fg:            #1a1a1a;
+      --fg-2:          #37352f; /* Notion warm charcoal */
+      --fg-3:          #5d5b54;
+      --fg-4:          #787671;
+      --border:        #e5e3df; /* Notion warm hairline */
+      --border-sub:    #ede9e4;
+      --accent:        #5645d4; /* Notion purple */
+      --accent-h:      #4534b3;
+      --green:         #1aae39; /* Notion pastel green */
+      --orange:        #dd5b00; /* Notion orange */
+      --red:           #e03131;
+      --blue:          #0075de;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-feature-settings: 'cv01', 'ss03';
+      background: var(--bg);
+      color: var(--fg-2);
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* ── Sidebar ───────────────────────────────────────────────────── */
+    #main-sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 12px 8px;
+    }
+    
+    .workspace-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--fg-2);
+      transition: background 0.12s;
+      margin-bottom: 16px;
+    }
+    .workspace-selector:hover { background: var(--surface-hover); }
+    .workspace-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    
+    .sidebar-section {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--fg-4);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0 10px;
+      margin-bottom: 4px;
+    }
+    .nav-list { list-style: none; display: flex; flex-direction: column; gap: 2px; margin-bottom: 20px; }
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      color: var(--fg-2);
+      font-size: 13.5px;
+      font-weight: 400;
+      cursor: pointer;
+      transition: background 0.12s;
+      background: transparent;
+      border: none;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+    }
+    .nav-btn:hover:not([aria-current="page"]) { background: var(--surface-hover); }
+    .nav-btn[aria-current="page"]             { background: #ede9e4; font-weight: 500; }
+    .nav-icon { font-size: 15px; flex-shrink: 0; }
+    .nav-count {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 500;
+      background: rgba(0,0,0,0.06);
+      border-radius: 4px;
+      padding: 1px 6px;
+      color: var(--fg-3);
+    }
+
+    /* ── Main area ──────────────────────────────────────────────────── */
+    #main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      background: var(--bg);
+    }
+
+    /* ── Fragment transitions ───────────────────────────────────────── */
+    #content-area > * { animation: frag-in 0.15s ease; }
+    @keyframes frag-in { from { opacity:0; } to { opacity:1; } }
+    .fragment-loading { position: relative; pointer-events: none; opacity: 0.5; }
+    .fragment-loading::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent 25%, rgba(0,0,0,0.03) 50%, transparent 75%);
+      background-size: 400% 100%;
+      animation: shimmer 1.4s ease infinite;
+    }
+    @keyframes shimmer { 0% { background-position:100% 0; } 100% { background-position:-100% 0; } }
+    .frag-error { display:flex; align-items:center; gap:10px; padding:4rem 2rem; color:var(--red); font-size:14px; }
+
+    /* ── Shared Notion component classes (used in fragments) ────────── */
+
+    /* Page header & breadcrumbs */
+    .page-header {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 12px;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--border-sub);
+    }
+    .breadcrumbs {
+      font-size: 13px;
+      color: var(--fg-4);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-right: auto;
+    }
+    .breadcrumb-sep { color: var(--border); font-size: 11px; }
+
+    /* Search */
+    .search-input {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 4px 10px;
+      width: 220px;
+      color: var(--fg-2);
+      font-size: 13px;
+      outline: none;
+      font-family: inherit;
+      transition: all 0.12s;
+    }
+    .search-input::placeholder { color: var(--fg-4); }
+    .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(86,69,212,0.15); }
+
+    /* Buttons */
+    .btn-lin {
+      border: none; border-radius: 5px; padding: 4px 10px;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: all 0.12s; font-family: inherit;
+    }
+    .btn-lin-primary { background: var(--accent); color: #fff; }
+    .btn-lin-primary:hover { background: var(--accent-h); }
+    .btn-lin-ghost { background: transparent; border: 1px solid var(--border); color: var(--fg-2); }
+    .btn-lin-ghost:hover { background: var(--surface-hover); }
+
+    /* Pastel status badges (Notion Style) */
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 2px 7px; border-radius: 4px;
+      font-size: 12px; font-weight: 400; white-space: nowrap;
+    }
+    .badge-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+    .badge-active     { background: #e2f5e9; color: #1e7e34; }
+    .badge-reported   { background: #fff1e6; color: #b25900; }
+    .badge-failed     { background: #ffebeb; color: #c92a2a; }
+    .badge-retrying   { background: #e7f5ff; color: #1971c2; }
+
+    /* Platform badges */
+    .platform-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 1px 6px; border-radius: 3px;
+      font-size: 11.5px; font-weight: 400; font-family: inherit;
+    }
+    .platform-linux   { background: #ebe6f8; color: #5c35b8; }
+    .platform-windows { background: #e7f5ff; color: #1971c2; }
+    .platform-darwin  { background: #f1f0ef; color: #5d5b54; }
+
+    /* Notion Database View Table Grid */
+    .endpoint-row {
+      display: grid;
+      grid-template-columns: 220px 100px 110px 140px 160px 80px 160px 100px;
+      align-items: center;
+      gap: 0;
+      padding: 8px 24px;
+      border-bottom: 1px solid var(--border-sub);
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .endpoint-row:hover { background: #fafaf9; }
+    .endpoint-row.header-row {
+      cursor: default; background: #ffffff !important;
+      border-bottom: 1px solid var(--border);
+      padding-top: 6px; padding-bottom: 6px;
+    }
+    .col-head {
+      font-size: 12px; font-weight: 500; color: var(--fg-4);
+      display: flex; align-items: center; gap: 4px;
+    }
+    .col-head-icon { font-size: 11px; opacity: 0.7; }
+    .endpoint-hostname { font-size: 13.5px; font-weight: 500; color: var(--fg-2); }
+    .endpoint-fqdn     { font-size: 11.5px; color: var(--fg-4); margin-top: 1px; }
+    .endpoint-os       { font-size: 13px; color: var(--fg-2); }
+    .endpoint-ip       { font-size: 13px; color: var(--fg-2); font-family: 'JetBrains Mono', monospace; }
+    .endpoint-ports    { font-size: 12.5px; color: var(--fg-3); font-family: 'JetBrains Mono', monospace; }
+    .endpoint-ts       { font-size: 12.5px; color: var(--fg-4); }
+
+    /* Network tags (Notion Multi-Select aesthetic) */
+    .net-tag {
+      font-size: 12px; font-weight: 400; padding: 1px 6px; border-radius: 3px;
+    }
+    .net-zerotier { background: #ebe6f8; color: #5c35b8; }
+    .net-lan      { background: #e2f5e9; color: #1e7e34; }
+
+    /* Notion gallery/board stats layout */
+    .stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; padding: 20px 24px 8px; }
+    .stat-card { background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+    .stat-label { font-size: 12px; color: var(--fg-4); margin-bottom: 4px; }
+    .stat-value { font-size: 20px; font-weight: 600; color: var(--fg-2); line-height: 1.1; }
+    .stat-value-green { color: #1e7e34; }
+    .stat-value-warn  { color: #b25900; }
+    .stat-sub   { font-size: 11.5px; color: var(--fg-4); margin-top: 3px; }
+    .stat-sub-ok  { color: #1e7e34; }
+    .stat-sub-warn { color: #b25900; }
+
+    /* Notion Detail Dialog Card */
+    .notion-property-label { color: var(--fg-4); font-size: 13px; display: flex; align-items: center; gap: 6px; }
+    .notion-property-value { color: var(--fg-2); font-size: 13px; }
+    .notion-callout {
+      padding: 12px 16px; background: #fff9db; border-radius: 6px; border: 1px solid #ffe066;
+      font-size: 13px; color: #856404; display: flex; gap: 10px; align-items: flex-start;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ════════════ SIDEBAR ════════════ -->
+  <aside id="main-sidebar">
+    <div class="workspace-selector">
+      <div class="workspace-avatar">A</div>
+      <span>AVARA Workspace</span>
+      <span style="margin-left:auto;font-size:9px;opacity:0.5;">▼</span>
+    </div>
+
+    <div class="sidebar-section">Favorites</div>
+    <ul class="nav-list">
+      <li>
+        <button class="nav-btn" id="nav-endpoints" onclick="navigateTo('endpoints')">
+          <span class="nav-icon">🔌</span>
+          Endpoints
+          <span class="nav-count" id="nav-endpoints-count">5</span>
+        </button>
+      </li>
+      <li>
+        <button class="nav-btn" id="nav-activity" onclick="navigateTo('activity')">
+          <span class="nav-icon">📈</span>
+          Activity
+        </button>
+      </li>
+    </ul>
+
+    <div class="sidebar-section">Private</div>
+    <ul class="nav-list">
+      <li>
+        <button class="nav-btn" id="nav-sessions" onclick="navigateTo('sessions')">
+          <span class="nav-icon">📓</span>
+          Sessions
+        </button>
+      </li>
+      <li>
+        <button class="nav-btn" id="nav-settings" onclick="navigateTo('settings')">
+          <span class="nav-icon">⚙️</span>
+          Settings
+        </button>
+      </li>
+    </ul>
+  </aside>
+
+  <!-- ════════════ MAIN ════════════ -->
+  <main id="main-content">
+    <div id="content-area" style="flex:1;display:flex;flex-direction:column;">
+      <div style="display:flex;align-items:center;gap:8px;padding:3rem 2rem;color:var(--fg-4);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        <span>Loading…</span>
+      </div>
+    </div>
+
+    <iframe hidden name="htmz"
+      onload="setTimeout(()=>{
+        const h = contentWindow.location.hash;
+        if (!h) return;
+        document.querySelector(h)?.replaceWith(...contentWindow.document.body.childNodes);
+        if (window.basecoat) window.basecoat.initAll();
+      },0)">
+    </iframe>
+  </main>
+
+  <div id="toaster" class="toaster"></div>
+
+  <!-- ── Inline fallback template for local file:// protocol ────────── -->
+  <template id="endpoints-template">
+    <div id="content-area" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+
+      <!-- ── Breadcrumbs and Title ──────────────────────────────────────── -->
+      <div class="page-header">
+        <div class="breadcrumbs">
+          <span>🏢 AVARA Workspace</span>
+          <span class="breadcrumb-sep">/</span>
+          <span style="color:var(--fg-2);">🔌 Endpoints</span>
+        </div>
+      </div>
+
+      <!-- ── Title block ─────────────────────────────────────────────────── -->
+      <div style="padding:24px 24px 0;flex-shrink:0;">
+        <h1 style="font-size:30px;font-weight:700;letter-spacing:-0.02em;color:var(--fg-2);display:flex;align-items:center;gap:10px;">
+          <span>🔌</span> Endpoints
+        </h1>
+        <p style="font-size:13px;color:var(--fg-4);margin-top:4px;">
+          Live registry of enrolled system nodes, SSH endpoints, and ZeroTier connections.
+        </p>
+      </div>
+
+      <!-- ── Gallery View Stats (Notion Board card layout) ───────────────── -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">📊 Total Enrolled</div>
+          <div class="stat-value">5</div>
+          <div class="stat-sub">across 2 platforms</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">🟢 Active SSH</div>
+          <div class="stat-value stat-value-green">2</div>
+          <div class="stat-sub stat-sub-ok">Verified active ✓</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">⚠️ System Issues</div>
+          <div class="stat-value stat-value-warn">3</div>
+          <div class="stat-sub stat-sub-warn">1 reported · 1 retry · 1 fail</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">🌐 Network Mix</div>
+          <div class="stat-value" style="font-size:16px;letter-spacing:0;font-weight:600;padding-top:4px;">4 ZT · 1 LAN</div>
+          <div class="stat-sub">overlay + direct</div>
+        </div>
+      </div>
+
+      <!-- ── Toolbar (Notion-style Database controls) ────────────────────── -->
+      <div style="padding:12px 24px;display:flex;align-items:center;gap:10px;flex-shrink:0;border-bottom:1px solid var(--border);">
+        <span style="font-size:13px;font-weight:600;color:var(--fg-3);display:flex;align-items:center;gap:4px;">
+          <span>☰</span> Table View
+        </span>
+        <div style="width:1px;height:14px;background:var(--border);margin:0 4px;"></div>
+        
+        <input type="text" class="search-input" placeholder="Search by hostname, IP, OS…" oninput="filterEndpoints(this.value)" style="margin-right:auto;">
+        
+        <button class="btn-lin btn-lin-ghost btn-filter" onclick="filterByStatus(this)" data-status="" style="border-radius:4px;padding:3px 8px;font-size:12.5px;">
+          All
+        </button>
+        <button class="btn-lin btn-lin-ghost btn-filter" onclick="filterByStatus(this)" data-status="active" style="border-radius:4px;padding:3px 8px;font-size:12.5px;">🟢 Active</button>
+        <button class="btn-lin btn-lin-ghost btn-filter" onclick="filterByStatus(this)" data-status="failed" style="border-radius:4px;padding:3px 8px;font-size:12.5px;">🔴 Failed</button>
+        <button class="btn-lin btn-lin-primary" style="border-radius:4px;padding:4px 10px;font-size:12.5px;">+ Add a row</button>
+      </div>
+
+      <!-- ── Database Table Grid ─────────────────────────────────────────── -->
+      <div style="flex:1;overflow-y:auto;background:#ffffff;">
+
+        <!-- Column headers -->
+        <div class="endpoint-row header-row">
+          <span class="col-head"><span class="col-head-icon">🔠</span> Hostname / FQDN</span>
+          <span class="col-head"><span class="col-head-icon">⬡</span> Platform</span>
+          <span class="col-head"><span class="col-head-icon">🏷️</span> Status</span>
+          <span class="col-head"><span class="col-head-icon">🖥️</span> OS</span>
+          <span class="col-head"><span class="col-head-icon">🌐</span> SSH IP:Port</span>
+          <span class="col-head"><span class="col-head-icon">🔌</span> Network</span>
+          <span class="col-head"><span class="col-head-icon">🔢</span> Open Ports</span>
+          <span class="col-head"><span class="col-head-icon">📅</span> Enrolled</span>
+        </div>
+
+        <!-- ── Row 1: orbVM (active / linux / ZeroTier) ── -->
+        <div class="endpoint-row" id="ep-orbvm"
+          data-hostname="orbVM"
+          data-fqdn="ubuntu-2510.local"
+          data-platform="linux"
+          data-os="Ubuntu 25.10"
+          data-os-family="debian"
+          data-kernel="6.11.0-26-generic"
+          data-network-mode="zerotier"
+          data-network-exposure="internal"
+          data-ssh-ip="10.246.231.150"
+          data-ssh-port="22"
+          data-open-ports="22, 3000, 9993"
+          data-status="active"
+          data-enrolled="2026-05-19 08:11"
+          data-verified="2026-05-19 08:13"
+          data-zt-node="56e52cfaab"
+          data-notes=""
+          onclick="showDetail(this)">
+          <div>
+            <div class="endpoint-hostname">orbVM</div>
+            <div class="endpoint-fqdn">ubuntu-2510.local</div>
+          </div>
+          <div><span class="platform-badge platform-linux">Linux</span></div>
+          <div><span class="badge badge-active"><span class="badge-dot"></span>Active</span></div>
+          <span class="endpoint-os">Ubuntu 25.10</span>
+          <span class="endpoint-ip">10.246.231.150:22</span>
+          <div><span class="net-tag net-zerotier">ZT</span></div>
+          <span class="endpoint-ports">22 · 3000 · 9993</span>
+          <span class="endpoint-ts">2026-05-19</span>
+        </div>
+
+        <!-- ── Row 2: dockur-win (active / windows / ZeroTier) ── -->
+        <div class="endpoint-row" id="ep-dockur-win"
+          data-hostname="dockur-win"
+          data-fqdn="DESKTOP-WIN10.local"
+          data-platform="windows"
+          data-os="Windows 10 Pro"
+          data-os-family="windows"
+          data-kernel="10.0.19045"
+          data-network-mode="zerotier"
+          data-network-exposure="internal"
+          data-ssh-ip="10.246.231.35"
+          data-ssh-port="22"
+          data-open-ports="22, 135, 139, 445, 3389, 5985, 5986"
+          data-status="active"
+          data-enrolled="2026-05-19 08:22"
+          data-verified="2026-05-19 08:24"
+          data-zt-node="9cce4638fc"
+          data-notes=""
+          onclick="showDetail(this)">
+          <div>
+            <div class="endpoint-hostname">dockur-win</div>
+            <div class="endpoint-fqdn">DESKTOP-WIN10.local</div>
+          </div>
+          <div><span class="platform-badge platform-windows">Windows</span></div>
+          <div><span class="badge badge-active"><span class="badge-dot"></span>Active</span></div>
+          <span class="endpoint-os">Windows 10 Pro</span>
+          <span class="endpoint-ip">10.246.231.35:22</span>
+          <div><span class="net-tag net-zerotier">ZT</span></div>
+          <span class="endpoint-ports">22 · 3389 · +5</span>
+          <span class="endpoint-ts">2026-05-19</span>
+        </div>
+
+        <!-- ── Row 3: pop-server (reported / linux / LAN) ── -->
+        <div class="endpoint-row" id="ep-pop-server"
+          data-hostname="pop-server"
+          data-fqdn="pop-server.lab.local"
+          data-platform="linux"
+          data-os="Ubuntu 22.04 LTS"
+          data-os-family="debian"
+          data-kernel="5.15.0-112-generic"
+          data-network-mode="lan"
+          data-network-exposure="public"
+          data-ssh-ip="192.168.1.50"
+          data-ssh-port="2222"
+          data-open-ports="2222, 80, 443"
+          data-status="reported"
+          data-enrolled="2026-05-27 09:44"
+          data-verified=""
+          data-zt-node=""
+          data-notes="Awaiting SSH verify — NATted host, gateway IP received"
+          onclick="showDetail(this)">
+          <div>
+            <div class="endpoint-hostname">pop-server</div>
+            <div class="endpoint-fqdn">pop-server.lab.local</div>
+          </div>
+          <div><span class="platform-badge platform-linux">Linux</span></div>
+          <div><span class="badge badge-reported"><span class="badge-dot"></span>Reported</span></div>
+          <span class="endpoint-os">Ubuntu 22.04</span>
+          <span class="endpoint-ip">192.168.1.50:2222</span>
+          <div><span class="net-tag net-lan">LAN</span></div>
+          <span class="endpoint-ports">2222 · 80 · 443</span>
+          <span class="endpoint-ts">2026-05-27</span>
+        </div>
+
+        <!-- ── Row 4: win-ws-01 (retrying / windows / ZeroTier) ── -->
+        <div class="endpoint-row" id="ep-win-ws-01"
+          data-hostname="win-ws-01"
+          data-fqdn="WIN-WS-01.corp.local"
+          data-platform="windows"
+          data-os="Windows 11 Pro"
+          data-os-family="windows"
+          data-kernel="10.0.22631"
+          data-network-mode="zerotier"
+          data-network-exposure="internal"
+          data-ssh-ip="10.246.231.87"
+          data-ssh-port="22"
+          data-open-ports="22, 3389, 5985"
+          data-status="retrying"
+          data-enrolled="2026-05-27 10:02"
+          data-verified=""
+          data-zt-node="a1b2c3d4e5"
+          data-notes="SSH verify attempt 2/3 — port 22 timeout; check Windows OpenSSH service"
+          onclick="showDetail(this)">
+          <div>
+            <div class="endpoint-hostname">win-ws-01</div>
+            <div class="endpoint-fqdn">WIN-WS-01.corp.local</div>
+          </div>
+          <div><span class="platform-badge platform-windows">Windows</span></div>
+          <div><span class="badge badge-retrying"><span class="badge-dot"></span>Retrying</span></div>
+          <span class="endpoint-os">Windows 11 Pro</span>
+          <span class="endpoint-ip">10.246.231.87:22</span>
+          <div><span class="net-tag net-zerotier">ZT</span></div>
+          <span class="endpoint-ports">22 · 3389 · 5985</span>
+          <span class="endpoint-ts">2026-05-27</span>
+        </div>
+
+        <!-- ── Row 5: contabo1 (failed / linux / ZeroTier) ── -->
+        <div class="endpoint-row" id="ep-contabo1"
+          data-hostname="contabo1"
+          data-fqdn="contabo1.vps.myhost.de"
+          data-platform="linux"
+          data-os="Debian 12 (Bookworm)"
+          data-os-family="debian"
+          data-kernel="6.1.0-23-amd64"
+          data-network-mode="zerotier"
+          data-network-exposure="public"
+          data-ssh-ip="10.246.231.200"
+          data-ssh-port="22"
+          data-open-ports="22, 9993"
+          data-status="failed"
+          data-enrolled="2026-05-26 16:30"
+          data-verified=""
+          data-zt-node="f7a9b0c12d"
+          data-notes="3 verify attempts failed — confirm sshd running and authorized_keys permissions (600)"
+          onclick="showDetail(this)">
+          <div>
+            <div class="endpoint-hostname">contabo1</div>
+            <div class="endpoint-fqdn">contabo1.vps.myhost.de</div>
+          </div>
+          <div><span class="platform-badge platform-linux">Linux</span></div>
+          <div><span class="badge badge-failed"><span class="badge-dot"></span>Failed</span></div>
+          <span class="endpoint-os">Debian 12</span>
+          <span class="endpoint-ip">10.246.231.200:22</span>
+          <div><span class="net-tag net-zerotier">ZT</span></div>
+          <span class="endpoint-ports">22 · 9993</span>
+          <span class="endpoint-ts">2026-05-26</span>
+        </div>
+
+      </div><!-- /table -->
+
+      <!-- Empty-state (hidden by default, shown when filter matches nothing) -->
+      <div id="ep-empty" style="display:none;padding:3rem 2rem;text-align:center;color:var(--fg-4);font-size:14px;">
+        No endpoints match the current filter.
+      </div>
+
+    </div>
+  </template>
+
+  <script>
+    const NAV_MAP = {
+      endpoints: 'fragments/endpoints.html',
+      activity:  'fragments/endpoints.html',
+      sessions:  'fragments/endpoints.html',
+      settings:  'fragments/endpoints.html',
+    };
+    const FRAGMENT_TIMEOUT = 5000;
+
+    function navigateTo(v) {
+      document.querySelectorAll('#main-sidebar button[aria-current]').forEach(b => b.removeAttribute('aria-current'));
+      const b = document.getElementById('nav-' + v);
+      if (b) b.setAttribute('aria-current', 'page');
+      loadFragment(NAV_MAP[v] || NAV_MAP.endpoints, 'content-area');
+    }
+
+    function loadFragment(src, tid) {
+      const slot = document.getElementById(tid);
+      if (slot) { slot.setAttribute('data-loading', ''); slot.classList.add('fragment-loading'); }
+
+      // Bypassing CORS blocks on local file:// protocol via template inline fallback
+      if (window.location.protocol === 'file:') {
+        setTimeout(() => {
+          const s = document.getElementById(tid);
+          if (!s) return;
+          const template = document.getElementById('endpoints-template');
+          if (template) {
+            s.replaceWith(template.content.cloneNode(true));
+            if (window.basecoat) window.basecoat.initAll();
+          } else {
+            s.outerHTML = `<div id="${tid}" class="frag-error">⚠ Template endpoints-template not found</div>`;
+          }
+        }, 100);
+        return;
+      }
+
+      const iframe = document.querySelector('iframe[name="htmz"]');
+      if (iframe) iframe.src = src + '?t=' + Date.now() + '#' + tid;
+      setTimeout(() => {
+        const s = document.getElementById(tid);
+        if (s && s.hasAttribute('data-loading'))
+          s.outerHTML = `<div id="${tid}" class="frag-error">⚠ Request timed out — server unreachable</div>`;
+      }, FRAGMENT_TIMEOUT);
+    }
+
+    let _statusFilter = '';
+
+    function filterEndpoints(q) {
+      _applyFilters(q, _statusFilter);
+    }
+
+    function filterByStatus(btn) {
+      document.querySelectorAll('.btn-filter').forEach(b => b.removeAttribute('aria-pressed'));
+      _statusFilter = btn.dataset.status || '';
+      btn.setAttribute('aria-pressed', 'true');
+      _applyFilters(document.querySelector('.search-input')?.value || '', _statusFilter);
+    }
+
+    function _applyFilters(q, status) {
+      q = q.toLowerCase();
+      const rows = document.querySelectorAll('.endpoint-row:not(.header-row)');
+      let visible = 0;
+      rows.forEach(r => {
+        const textMatch  = !q || r.textContent.toLowerCase().includes(q);
+        const statMatch  = !status || r.dataset.status === status;
+        const show = textMatch && statMatch;
+        r.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+      const empty = document.getElementById('ep-empty');
+      if (empty) empty.style.display = visible === 0 ? '' : 'none';
+    }
+
+    function showDetail(row) {
+      const existing = document.getElementById('ep-detail-dialog');
+      if (existing) existing.remove();
+
+      const d = row.dataset;
+      const statusClass = { active:'badge-active', reported:'badge-reported', retrying:'badge-retrying', failed:'badge-failed' }[d.status] || 'badge-reported';
+      const networkClass = d.networkMode === 'zerotier' ? 'net-zerotier' : 'net-lan';
+      const networkLabel = d.networkMode === 'zerotier' ? 'ZeroTier' : 'LAN';
+      const platformClass = { linux:'platform-linux', windows:'platform-windows', darwin:'platform-darwin' }[d.platform] || 'platform-linux';
+
+      const ztRow = d.ztNode ? `
+        <span class="notion-property-label">🏷️ ZT Node ID</span>
+        <span class="notion-property-value" style="font-family:'JetBrains Mono',monospace;color:var(--accent);">${d.ztNode}</span>` : '';
+
+      const verifiedRow = d.verified ? `
+        <span class="notion-property-label">📅 Verified</span>
+        <span class="notion-property-value">${d.verified}</span>` : '';
+
+      const notesRow = d.notes ? `
+        <div class="notion-callout">
+          <span style="font-size:16px;">💡</span>
+          <div>
+            <div style="font-weight:600;margin-bottom:3px;color:#856404;">System Notes</div>
+            ${d.notes}
+          </div>
+        </div>` : '';
+
+      document.body.insertAdjacentHTML('beforeend', `
+<dialog id="ep-detail-dialog" style="
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  color:var(--fg-2);box-shadow:0 12px 48px rgba(0,0,0,0.15);padding:0;
+  max-width:540px;width:calc(100% - 32px);margin:auto;outline:none;">
+  
+  <div style="padding:24px 28px 12px;display:flex;align-items:flex-start;gap:12px;">
+    <div style="flex:1;">
+      <div style="font-size:32px;margin-bottom:8px;line-height:1;">🖥️</div>
+      <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.02em;color:var(--fg-2);">${d.hostname}</h2>
+      <div style="font-size:12.5px;color:var(--fg-4);margin-top:2px;font-family:'JetBrains Mono',monospace;">${d.fqdn}</div>
+    </div>
+    <button onclick="document.getElementById('ep-detail-dialog').close()" style="
+      background:transparent;border:none;color:var(--fg-4);cursor:pointer;font-size:20px;
+      line-height:1;padding:4px 6px;">✕</button>
+  </div>
+
+  <div style="padding:12px 28px 24px;display:flex;flex-direction:column;gap:16px;">
+    
+    <div style="display:grid;grid-template-columns:140px 1fr;gap:12px 16px;align-items:center;border-top:1px solid var(--border-sub);padding-top:16px;">
+      <span class="notion-property-label">⬡ Platform</span>
+      <span class="platform-badge ${platformClass}">${d.platform}</span>
+
+      <span class="notion-property-label">🖥️ OS</span>
+      <span class="notion-property-value">${d.os} (${d.osFamily})</span>
+
+      <span class="notion-property-label">💾 Kernel</span>
+      <span class="notion-property-value" style="font-family:'JetBrains Mono',monospace;font-size:12px;">${d.kernel}</span>
+
+      <span class="notion-property-label">🏷️ Status</span>
+      <span class="badge ${statusClass}"><span class="badge-dot"></span>${d.status.charAt(0).toUpperCase()+d.status.slice(1)}</span>
+
+      <span class="notion-property-label">🌐 Network</span>
+      <span class="net-tag ${networkClass}">${networkLabel}</span>
+
+      <span class="notion-property-label">🔓 Exposure</span>
+      <span class="notion-property-value">${d.networkExposure.toUpperCase() || '—'}</span>
+
+      ${ztRow}
+
+      <span class="notion-property-label">🔌 Open Ports</span>
+      <span class="notion-property-value" style="font-family:'JetBrains Mono',monospace;font-size:12px;">${d.openPorts}</span>
+
+      <span class="notion-property-label">📅 Enrolled</span>
+      <span class="notion-property-value">${d.enrolled}</span>
+
+      ${verifiedRow}
+    </div>
+
+    <div style="padding:12px 14px;background:#f6f5f4;border-radius:6px;border:1px solid var(--border);margin-top:4px;">
+      <div style="font-size:11px;font-weight:600;color:var(--fg-4);letter-spacing:0.04em;text-transform:uppercase;margin-bottom:6px;">SSH Command</div>
+      <code style="font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#c92a2a;">ssh scanner-service@${d.sshIp} -p ${d.sshPort}</code>
+    </div>
+
+    ${notesRow}
+  </div>
+
+  <div style="padding:14px 28px;border-top:1px solid var(--border-sub);display:flex;justify-content:flex-end;gap:8px;background:#fafaf9;border-bottom-left-radius:8px;border-bottom-right-radius:8px;">
+    <button class="btn-lin btn-lin-ghost" onclick="document.getElementById('ep-detail-dialog').close()">Close</button>
+    <button class="btn-lin btn-lin-primary" ${d.status !== 'active' ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>Open SSH Session</button>
+  </div>
+</dialog>`);
+      document.getElementById('ep-detail-dialog').showModal();
+    }
+
+    addEventListener('DOMContentLoaded', () => setTimeout(() => navigateTo('endpoints'), 100));
+  </script>
+</body>
+</html>

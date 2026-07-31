@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sentinel · Basecoat + htmz</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Basecoat CSS (bundles Tailwind v4.1.4) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@latest/dist/basecoat.cdn.min.css">
+  <!-- Basecoat JS -->
+  <script src="https://cdn.jsdelivr.net/npm/basecoat-css@latest/dist/js/all.min.js" defer></script>
+
+  <style>
+    /* ── Root: match card-accordion palette ──────────────────────────── */
+    :root {
+      --bg: #0d1117;
+      --bg-card: #161b22;
+      --app-border: #21262d;
+      --app-border-light: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --text-faint: #484f58;
+      --blue: #58a6ff;
+      --green: #3fb950;
+      --red: #f85149;
+      --red-soft: #ff7b72;
+      --orange: #e3b341;
+    }
+    /* ── Patch Basecoat btn-outline for this dark theme ─────────────── */
+    /* Our :root overrides Basecoat's --border with a dark value, making  */
+    /* btn-outline borders invisible. Restore correct values explicitly.  */
+    .btn-outline {
+      border-color: #30363d !important;
+      color: #8b949e !important;
+    }
+    .btn-outline:hover {
+      background: rgba(255,255,255,0.06) !important;
+      border-color: #8b949e !important;
+      color: #e6edf3 !important;
+    }
+    .btn {
+      background: #238636 !important;
+      border-color: rgba(63,185,80,0.3) !important;
+      color: #fff !important;
+    }
+    .btn:hover {
+      background: #2ea043 !important;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* ── Sidebar ────────────────────────────────────────────────────── */
+    #main-sidebar {
+      background: var(--bg);
+      border-color: #21262d;
+    }
+    #main-sidebar .logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--blue);
+    }
+    #main-sidebar button.nav-link {
+      appearance: none;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: color 0.15s, background 0.15s;
+    }
+    #main-sidebar button.nav-link:hover:not([aria-current="page"]) {
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+    }
+    #main-sidebar button[aria-current="page"] {
+      background: rgba(88,166,255,0.1);
+      color: var(--blue);
+      font-weight: 600;
+    }
+    #main-sidebar .stack-section {
+      border-top: 1px solid #21262d;
+      padding: 12px 16px 16px;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────────── */
+    .top-header {
+      background: var(--bg);
+      border-color: var(--app-border);
+    }
+
+    /* ── Fragment entrance ──────────────────────────────────────────── */
+    #content-area > * {
+      animation: frag-in 0.25s ease;
+    }
+    @keyframes frag-in {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Card severity glow ─────────────────────────────────────────── */
+    .glow-critical {
+      box-shadow: 0 0 0 1px rgba(248,81,73,0.12),
+                  0 -2px 16px 0 rgba(248,81,73,0.18),
+                  0 4px 24px 0 rgba(0,0,0,0.6);
+    }
+    .glow-high {
+      box-shadow: 0 0 0 1px rgba(227,179,65,0.12),
+                  0 -2px 16px 0 rgba(227,179,65,0.18),
+                  0 4px 24px 0 rgba(0,0,0,0.6);
+    }
+    /* ── Accordion (details/summary) ────────────────────────────────── */
+    /* Basecoat handles detail/summary reveal + chevron via Tailwind classes.
+       We only keep the dark-theme hover override. */
+    details.group summary:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+
+    /* Accordion body inherits card background — no darker inset needed.
+       Labels use var(--text-muted), body text uses var(--text). */
+.accordion-body {
+      background: inherit;
+      padding-top: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    .accordion-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+    }
+    .cve-id {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--red-soft);
+      white-space: nowrap;
+      min-width: 140px;
+    }
+    .cve-severity {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .cve-severity-crit { color: var(--red); }
+    .cve-severity-high { color: var(--red-soft); }
+    .cve-severity-med  { color: var(--orange); }
+
+    /* ── Stat pill (matching card-accordion) ────────────────────────── */
+    .stat-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      border-radius: 6px;
+      padding: 6px 12px;
+    }
+    .stat-pill-crit { background: #21060a; border: 1px solid rgba(248,81,73,0.2); }
+    .stat-pill-high { background: #1a1400; border: 1px solid rgba(227,179,65,0.2); }
+    .stat-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6875rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+    }
+    .stat-divider {
+      width: 1px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+    .stat-pill-crit .stat-divider { background: rgba(248,81,73,0.25); }
+    .stat-pill-high .stat-divider { background: rgba(227,179,65,0.25); }
+    .stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+      font-weight: 700;
+    }
+    .stat-value-crit { color: var(--red-soft); }
+    .stat-value-high { color: var(--orange); }
+    .stat-value-ok   { color: var(--green); }
+
+    /* ── Dialog / Modal ─────────────────────────────────────────────── */
+    dialog.dialog::backdrop {
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+    }
+    dialog.dialog {
+      background: var(--bg-card);
+      border: 1px solid var(--app-border-light);
+      border-radius: 12px;
+      color: var(--text);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.7);
+    }
+    dialog.dialog > div > header h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    dialog.dialog > div > header p {
+      color: var(--text-muted);
+      font-size: 0.8125rem;
+    }
+    dialog.dialog > div > section {
+      color: var(--text);
+    }
+
+    /* ── Accordion styling inside dialog ────────────────────────────── */
+    dialog details.group summary {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      transition: color 0.15s;
+    }
+    dialog details.group summary:hover {
+      color: var(--text);
+      background: transparent;
+    }
+    dialog details.group[open] > summary {
+      color: var(--text);
+    }
+
+    /* ── CVE item styling ───────────────────────────────────────────── */
+    .cve-row {
+      border-bottom: 1px solid var(--app-border);
+    }
+    .cve-row:last-child { border-bottom: none; }
+
+    /* ── Host card detail ───────────────────────────────────────────── */
+    .verdict-block {
+      background: var(--bg);
+      border-radius: 0 6px 6px 0;
+      padding: 14px 16px;
+      margin-top: 16px;
+    }
+    .glow-critical .verdict-block { border-left: 4px solid var(--red); }
+    .glow-high     .verdict-block { border-left: 4px solid var(--orange); }
+    .verdict-block p {
+      color: #c9d1d9;
+      font-size: 0.875rem;
+      line-height: 1.7;
+    }
+
+    /* ── Context grid ────────────────────────────────────────────────── */
+    .ctx-grid {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 7px 16px;
+      font-size: 0.875rem;
+    }
+    .ctx-label { color: var(--text-muted); font-weight: 500; }
+    .ctx-value { color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.8125rem; }
+
+    /* ── Font helpers ────────────────────────────────────────────────── */
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* ── Fragment loading overlay (slot has existing content) ─────── */
+    .fragment-loading {
+      position: relative;
+      pointer-events: none;
+      opacity: 0.45;
+      transition: opacity 0.2s;
+    }
+    .fragment-loading::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.04) 50%, transparent 75%);
+      background-size: 400% 100%;
+      animation: frag-shimmer 1.4s ease infinite;
+      pointer-events: none;
+    }
+    @keyframes frag-shimmer {
+      0%   { background-position: 100% 0; }
+      100% { background-position: -100% 0; }
+    }
+
+    /* ── Fragment error state ─────────────────────────────────────── */
+    .frag-error-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6rem 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .frag-error-state {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #ff7b72;
+      font-size: 0.875rem;
+    }
+    .frag-error-icon { font-size: 1.25rem; flex-shrink: 0; }
+  </style>
+</head>
+<body class="bg-[#0d1117] text-[#e6edf3] min-h-screen flex">
+
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside id="main-sidebar" class="w-60 shrink-0 border-r flex flex-col">
+    <div class="px-5 py-5">
+      <div class="logo">AVARA</div>
+      <div class="text-[13px] text-[#8b949e] mt-1.5">Vulnerability Management</div>
+    </div>
+    <nav class="px-3 flex-1">
+      <ul class="flex flex-col gap-0.5">
+        <li><button class="nav-link w-full text-left px-3 py-2 rounded-md text-sm font-medium" id="nav-dashboard" aria-current="page" onclick="navigateTo('dashboard')">Dashboard</button></li>
+        <li><button class="nav-link w-full text-left px-3 py-2 rounded-md text-sm font-medium" id="nav-hosts" onclick="navigateTo('hosts')">Host Inventory</button></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <main class="flex-1 flex flex-col min-w-0">
+
+    <div id="content-area" class="px-16 py-7" style="max-width:900px;margin:0 auto;width:100%">
+      <div class="flex flex-col items-center justify-center py-24 gap-4">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="status" aria-label="Loading" class="size-6 animate-spin text-[#484f58]"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        <p class="text-sm text-[#484f58]">Select a view from the sidebar</p>
+      </div>
+    </div>
+
+    <iframe hidden name="htmz"
+      onload="setTimeout(()=>{
+        document.querySelector(contentWindow.location.hash)
+          ?.replaceWith(...contentWindow.document.body.childNodes);
+        if(window.basecoat)window.basecoat.initAll();
+        initAccordions();
+      },0)">
+    </iframe>
+  </main>
+
+  <div id="toaster" class="toaster"></div>
+
+  <script>
+    const NAV_MAP={dashboard:'/fragments/dashboard.html',hosts:'/fragments/hosts.html'};
+    const FRAGMENT_TIMEOUT = 5000;
+
+    function errorContent(msg) {
+      return `<div id="content-area" class="frag-error-wrap">
+        <div class="frag-error-state">
+          <span class="frag-error-icon">⚠</span>
+          <span>${msg}</span>
+        </div>
+      </div>`;
+    }
+
+    function navigateTo(v){
+      document.querySelectorAll('#main-sidebar button[aria-current]').forEach(b=>b.removeAttribute('aria-current'));
+      const b=document.getElementById('nav-'+v);if(b)b.setAttribute('aria-current','page');
+      loadFragment(NAV_MAP[v],'content-area');
+    }
+
+    function loadFragment(src, tid) {
+      const slot = document.getElementById(tid);
+      if (slot) {
+        slot.setAttribute('data-loading', '');
+        slot.classList.add('fragment-loading');
+      }
+
+      const a = document.createElement('a');
+      a.href = src + '#' + tid;
+      a.target = 'htmz';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      // Watchdog — fires if server never responds
+      setTimeout(() => {
+        const s = document.getElementById(tid);
+        if (s && s.hasAttribute('data-loading')) {
+          s.outerHTML = errorContent('Request timed out — server unreachable');
+        }
+      }, FRAGMENT_TIMEOUT);
+    }
+
+    async function openHostDetail(host){
+      try {
+        const res = await fetch('/api/host-detail?host=' + host);
+        if (!res.ok) throw new Error('Server error ' + res.status);
+        const h = await res.text();
+        const o=document.getElementById('host-detail-dialog');if(o)o.remove();
+        document.body.insertAdjacentHTML('beforeend',h);
+        if(window.basecoat)window.basecoat.initAll();
+        initAccordions();
+        const d=document.getElementById('host-detail-dialog');if(d)d.showModal();
+      } catch(e) {
+        document.dispatchEvent(new CustomEvent('basecoat:toast',{detail:{config:{
+          category:'error',
+          title:'Failed to load host detail',
+          description: e.message,
+          cancel:{label:'Dismiss'}
+        }}}));
+      }
+    }
+    addEventListener('DOMContentLoaded',()=>setTimeout(()=>navigateTo('dashboard'),150));
+
+    /* Basecoat Accordion — single-open behaviour.
+       Re-run after every htmz fragment swap so injected accordions work. */
+    function initAccordions(){
+      document.querySelectorAll('.accordion').forEach(accordion=>{
+        if(accordion.dataset.bound==='1')return;
+        accordion.dataset.bound='1';
+        accordion.addEventListener('click',e=>{
+          const s=e.target.closest('summary');
+          if(!s)return;
+          const d=s.closest('details');
+          if(!d)return;
+          accordion.querySelectorAll('details').forEach(e2=>{
+            if(e2!==d)e2.removeAttribute('open');
+          });
+        });
+      });
+    }
+  </script>
+</body>
+</html>

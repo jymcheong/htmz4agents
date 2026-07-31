@@ -1,0 +1,212 @@
+<div id="content-area" class="px-16 py-7" style="max-width:900px;margin:0 auto;width:100%">
+  <div class="flex items-center gap-2 mb-5">
+    <span style="width:6px;height:6px;border-radius:50%;background:#f85149;flex-shrink:0;box-shadow:0 0 6px rgba(248,81,73,0.6)"></span>
+    <span class="font-mono text-[0.6875rem] font-semibold tracking-[0.1em] uppercase text-[#484f58]">Priority threats</span>
+  </div>
+
+  <div class="flex flex-col gap-12">
+
+    <!-- ═══════ ENDPOINT-001 — Critical ═══════ -->
+    <div class="card glow-critical">
+      <header class="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <div class="font-mono text-xl font-bold text-[#e6edf3] tracking-[0.04em]">ENDPOINT-001</div>
+          <div class="text-[#8b949e] text-[0.8125rem] mt-1">Internet-facing &middot; Windows Server 2019 &middot; Finance zone</div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <span class="badge-destructive">Critical</span>
+          <span class="badge-outline">Patch Now</span>
+        </div>
+      </header>
+
+      <section>
+        <div class="verdict-block">
+          <p>Active exploit in the wild targets this host's unpatched RDP stack. It is internet-facing with no compensating control. Patch before end of day or isolate immediately &mdash; this is the most likely entry point in your estate.</p>
+        </div>
+
+        <div class="flex flex-wrap gap-2 mt-4">
+          <div class="stat-pill stat-pill-crit"><span class="stat-label">CVSS</span><div class="stat-divider"></div><span class="stat-value stat-value-crit">9.8</span></div>
+          <div class="stat-pill stat-pill-crit"><span class="stat-label">EPSS</span><div class="stat-divider"></div><span class="stat-value stat-value-crit">0.94</span></div>
+          <div class="stat-pill stat-pill-crit"><span class="stat-label">KEV</span><div class="stat-divider"></div><span class="stat-value stat-value-crit">&#10003; Yes</span></div>
+          <div class="stat-pill stat-pill-crit"><span class="stat-label">Exposure</span><div class="stat-divider"></div><span class="stat-value stat-value-crit">Internet</span></div>
+          <div class="stat-pill stat-pill-crit"><span class="stat-label">CVEs</span><div class="stat-divider"></div><span class="stat-value stat-value-crit">7</span></div>
+        </div>
+      </section>
+
+      <!-- Basecoat Accordion with single-open behavior -->
+      <section class="accordion border-t border-[#30363d] mt-8 py-6">
+        <details class="group">
+          <summary style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:1.25rem 1.5rem;font-size:0.875rem;font-weight:500;color:#8b949e;cursor:pointer;">
+            <span>See details</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform duration-200 group-open:rotate-180 shrink-0 ml-2"><path d="m6 9 6 6 6-6"/></svg>
+          </summary>
+          <section class="accordion-body px-6 pb-6">
+
+            <div class="flex flex-col gap-2.5">
+              <div class="accordion-label">AI Reasoning</div>
+              <p class="text-sm text-[#c9d1d9] leading-relaxed">This host scores P0 across all four SSVC decision points. Exploitation is active &mdash; CVE-2025-0381 appears in CISA KEV as of 2025-03-14. Exposure is internet-addressable with RDP port 3389 open on the public interface. Mission impact is critical &mdash; Finance zone hosts payment processing services. No compensating controls recorded.</p>
+            </div>
+
+            <div class="flex flex-col gap-2.5">
+              <div class="accordion-label">Active CVEs</div>
+              <div class="cve-row flex items-start gap-3 py-2.5 border-b border-[#21262d]">
+                <span class="cve-id">CVE-2025-0381</span>
+                <div class="flex-1">
+                  <div class="text-[#e6edf3] text-[0.8125rem] leading-relaxed mb-1">RDP pre-auth remote code execution via heap overflow in termdd.sys</div>
+                  <div class="flex flex-wrap gap-1">
+                    <span class="badge-outline text-[0.625rem] px-1.5 py-0.5">Exploited in wild</span>
+                    <span class="badge-outline text-[0.625rem] px-1.5 py-0.5">KEV</span>
+                    <span class="badge-outline text-[0.625rem] px-1.5 py-0.5">RCE</span>
+                  </div>
+                </div>
+                <span class="cve-severity cve-severity-crit">9.8</span>
+              </div>
+              <div class="cve-row flex items-start gap-3 py-2.5 border-b border-[#21262d]">
+                <span class="cve-id">CVE-2024-4892</span>
+                <div class="flex-1">
+                  <div class="text-[#e6edf3] text-[0.8125rem] leading-relaxed mb-1">Windows NTLM hash relay via crafted SMB response</div>
+                  <div class="flex flex-wrap gap-1">
+                    <span class="badge-outline text-[0.625rem] px-1.5 py-0.5">Public PoC</span>
+                    <span class="badge-outline text-[0.625rem] px-1.5 py-0.5">LPE</span>
+                  </div>
+                </div>
+                <span class="cve-severity cve-severity-high">7.5</span>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-2.5">
+              <div class="accordion-label">Recommended Actions</div>
+              <ol class="pl-[18px] flex flex-col gap-1.5 text-sm text-[#c9d1d9] leading-relaxed">
+                <li>Apply KB5034441 &mdash; closes CVE-2025-0381</li>
+                <li>Restrict RDP to jump host only &mdash; block 3389 at perimeter firewall</li>
+                <li>Enable Network Level Authentication (NLA) as interim control</li>
+                <li>Raise CAB ticket &mdash; 24&ndash;48 hr change window required</li>
+              </ol>
+            </div>
+
+          </section>
+        </details>
+      </section>
+
+      <footer class="flex gap-2.5 flex-wrap px-6 pt-4 pb-6">
+        <button class="btn-outline" onclick="document.dispatchEvent(new CustomEvent('basecoat:toast',{detail:{config:{category:'success',title:'Owner notified',description:'Notification sent to finance-ops@company.com for ENDPOINT-001.',cancel:{label:'Dismiss'}}}}))">&#9993; Inform Owner</button>
+        <button class="btn" onclick="document.dispatchEvent(new CustomEvent('basecoat:toast',{detail:{config:{category:'success',title:'Rescan queued',description:'Job rsn_3a7f2c1d dispatched for ENDPOINT-001.',cancel:{label:'Dismiss'}}}}))">&#8634; Rescan Asset</button>
+      </footer>
+    </div>
+
+    <!-- ═══════ ENDPOINT-002 — Critical ═══════ -->
+    <div class="card glow-critical">
+      <header class="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <div class="font-mono text-xl font-bold text-[#e6edf3] tracking-[0.04em]">ENDPOINT-002</div>
+          <div class="text-[#8b949e] text-[0.8125rem] mt-1">Internal &middot; Ubuntu 20.04 &middot; DevOps zone</div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <span class="badge-destructive">Critical</span>
+          <span class="badge-outline">Patch This Week</span>
+        </div>
+      </header>
+
+      <section>
+        <div class="verdict-block">
+          <p>This build server has direct write access to production deployment pipelines. A known lateral movement exploit is actively circulating &mdash; a compromised neighbour in the same subnet is one hop away. Patch now before the path closes.</p>
+        </div>
+
+        <div class="flex flex-wrap gap-2 mt-4">
+          <div class="stat-pill stat-pill-crit"><span class="stat-label">CVSS</span><div class="stat-divider"></div><span class="stat-value stat-value-crit">9.1</span></div>
+          <div class="stat-pill stat-pill-crit"><span class="stat-label">EPSS</span><div class="stat-divider"></div><span class="stat-value stat-value-crit">0.87</span></div>
+          <div class="stat-pill stat-pill-crit"><span class="stat-label">KEV</span><div class="stat-divider"></div><span class="stat-value stat-value-crit">&#10003; Yes</span></div>
+          <div class="stat-pill stat-pill-crit"><span class="stat-label">Exposure</span><div class="stat-divider"></div><span class="stat-value stat-value-ok">Internal</span></div>
+          <div class="stat-pill stat-pill-crit"><span class="stat-label">CVEs</span><div class="stat-divider"></div><span class="stat-value stat-value-crit">4</span></div>
+        </div>
+      </section>
+
+      <section class="accordion border-t border-[#30363d] mt-8 py-6">
+        <details class="group">
+          <summary style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:1.25rem 1.5rem;font-size:0.875rem;font-weight:500;color:#8b949e;cursor:pointer;">
+            <span>See details</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform duration-200 group-open:rotate-180 shrink-0 ml-2"><path d="m6 9 6 6 6-6"/></svg>
+          </summary>
+          <section class="accordion-body px-6 pb-6">
+
+            <div class="flex flex-col gap-2.5">
+              <div class="accordion-label">AI Reasoning</div>
+              <p class="text-sm text-[#c9d1d9] leading-relaxed">Internal exposure reduces urgency slightly but mission impact elevates this to P1. ENDPOINT-002 has write access to CI/CD pipelines that deploy directly to production. CVE-2025-1102 (sudo heap overflow) is KEV-listed with a public PoC. A compromised neighbour (ENDPOINT-019, same /24 subnet) was flagged in the previous scan cycle.</p>
+            </div>
+
+            <div class="flex flex-col gap-2.5">
+              <div class="accordion-label">Active CVEs</div>
+              <div class="cve-row flex items-start gap-3 py-2.5 border-b border-[#21262d]">
+                <span class="cve-id">CVE-2025-1102</span>
+                <div class="flex-1">
+                  <div class="text-[#e6edf3] text-[0.8125rem] leading-relaxed mb-1">sudo heap overflow &mdash; local privilege escalation to root</div>
+                  <div class="flex flex-wrap gap-1">
+                    <span class="badge-outline text-[0.625rem] px-1.5 py-0.5">Exploited in wild</span>
+                    <span class="badge-outline text-[0.625rem] px-1.5 py-0.5">KEV</span>
+                  </div>
+                </div>
+                <span class="cve-severity cve-severity-crit">9.1</span>
+              </div>
+              <div class="cve-row flex items-start gap-3 py-2.5 border-b border-[#21262d]">
+                <span class="cve-id">CVE-2024-6741</span>
+                <div class="flex-1">
+                  <div class="text-[#e6edf3] text-[0.8125rem] leading-relaxed mb-1">OpenSSH pre-auth memory corruption via malformed packet</div>
+                  <div class="flex flex-wrap gap-1">
+                    <span class="badge-outline text-[0.625rem] px-1.5 py-0.5">Public PoC</span>
+                    <span class="badge-outline text-[0.625rem] px-1.5 py-0.5">RCE</span>
+                  </div>
+                </div>
+                <span class="cve-severity cve-severity-high">7.8</span>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-2.5">
+              <div class="accordion-label">Recommended Actions</div>
+              <ol class="pl-[18px] flex flex-col gap-1.5 text-sm text-[#c9d1d9] leading-relaxed">
+                <li>Upgrade sudo to 1.9.15p2 or later</li>
+                <li>Patch OpenSSH to 9.7p1</li>
+                <li>Restrict CI/CD pipeline write permissions to named service accounts</li>
+                <li>Investigate ENDPOINT-019 compromise status before patch window</li>
+              </ol>
+            </div>
+
+          </section>
+        </details>
+      </section>
+
+      <footer class="flex gap-2.5 flex-wrap px-6 pt-4 pb-6">
+        <button class="btn-outline" onclick="document.dispatchEvent(new CustomEvent('basecoat:toast',{detail:{config:{category:'success',title:'Owner notified',description:'Notification sent to devops-lead@company.com for ENDPOINT-002.',cancel:{label:'Dismiss'}}}}))">&#9993; Inform Owner</button>
+        <button class="btn" onclick="document.dispatchEvent(new CustomEvent('basecoat:toast',{detail:{config:{category:'success',title:'Rescan queued',description:'Job rsn_8b4e92f1 dispatched for ENDPOINT-002.',cancel:{label:'Dismiss'}}}}))">&#8634; Rescan Asset</button>
+      </footer>
+    </div>
+
+    <!-- ═══════ ENDPOINT-003 — High ═══════ -->
+    <div class="card glow-high">
+      <header class="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <div class="font-mono text-xl font-bold text-[#e6edf3] tracking-[0.04em]">ENDPOINT-003</div>
+          <div class="text-[#8b949e] text-[0.8125rem] mt-1">Internal &middot; Windows Server 2012 R2 &middot; HR zone &middot; EOL OS</div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <span class="badge">High</span>
+          <span class="badge-outline">Schedule It</span>
+        </div>
+      </header>
+
+      <section>
+        <div class="verdict-block">
+          <p>End-of-life OS with no vendor patch available. The vulnerability is not yet actively exploited but the attack surface is permanent &mdash; it cannot be closed through patching. Micropatch is the only viable fix; CAB this week before exposure window widens.</p>
+        </div>
+
+        <div class="flex flex-wrap gap-2 mt-4">
+          <div class="stat-pill stat-pill-high"><span class="stat-label">CVSS</span><div class="stat-divider"></div><span class="stat-value stat-value-high">8.4</span></div>
+          <div class="stat-pill stat-pill-high"><span class="stat-label">EPSS</span><div class="stat-divider"></div><span class="stat-value stat-value-high">0.61</span></div>
+          <div class="stat-pill stat-pill-high"><span class="stat-label">KEV</span><div class="stat-divider"></div><span class="stat-value stat-value-ok">&#10007; No</span></div>
+          <div class="stat-pill stat-pill-high"><span class="stat-label">Exposure</span><div class="stat-divider"></div><span class="stat-value stat-value-ok">Internal</span></div>
+          <div class="stat-pill stat-pill-high"><span class="stat-label">CVEs</span><div class="stat-divider"></div><span class="stat-value stat-value-high">2</span></div>
+        </div>
+      </section>
+    </div>
+
+  </div>
+</div>

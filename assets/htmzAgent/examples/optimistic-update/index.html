@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Optimistic Like · htmz P22</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Basecoat CSS (Tailwind v4 CDN) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@latest/dist/basecoat.cdn.min.css">
+
+  <style>
+    /* ── Theme ──────────────────────────────────────────────────── */
+    :root {
+      --bg:          #0d1117;
+      --bg-card:     #161b22;
+      --border:      #21262d;
+      --border-lite: #30363d;
+      --text:        #e6edf3;
+      --muted:       #8b949e;
+      --red:         #f85149;
+      --red-hover:   #da3633;
+      --red-bg:      rgba(248, 81, 73, 0.08);
+      --red-border:  rgba(248, 81, 73, 0.2);
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      margin: 0;
+    }
+
+    /* ── Card ───────────────────────────────────────────────────── */
+    .demo-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      width: 100%;
+      max-width: 24rem;
+      padding: 1.5rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    
+    .demo-card-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin: 0 0 0.5rem;
+    }
+    
+    .demo-card-desc {
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin: 0 0 1.5rem;
+      line-height: 1.5;
+    }
+
+    /* ── Like Button Style ──────────────────────────────────────── */
+    .btn-like {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: transparent;
+      border: 1px solid var(--border-lite);
+      border-radius: 6px;
+      color: var(--muted);
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      user-select: none;
+      transition: background 200ms ease-out, border-color 200ms ease-out, color 200ms ease-out;
+      margin-bottom: 1.5rem;
+    }
+    
+    .btn-like:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--muted);
+      color: var(--text);
+    }
+
+    .btn-like.liked {
+      background: var(--red-bg) !important;
+      border-color: var(--red-border) !important;
+      color: var(--red) !important;
+    }
+
+    .btn-like.liked:hover {
+      color: var(--red-hover) !important;
+    }
+
+    .heart-icon {
+      font-size: 1.125rem;
+      line-height: 1;
+      transition: transform 150ms ease-out;
+    }
+
+    /* ── Tactile Pop Animation ──────────────────────────────────── */
+    .pop-active {
+      animation: button-pop 150ms ease-out;
+    }
+    
+    @keyframes button-pop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    /* ── Shake Failure Animation ────────────────────────────────── */
+    .shake-active {
+      animation: button-shake 300ms ease-in-out;
+      border-color: var(--red) !important;
+      color: var(--red) !important;
+    }
+
+    @keyframes button-shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-4px); }
+      40%, 80% { transform: translateX(4px); }
+    }
+
+    /* ── Rollback Flash ─────────────────────────────────────────── */
+    .rollback-flash {
+      animation: flash-red 500ms ease-out;
+    }
+
+    @keyframes flash-red {
+      0%   { border-color: var(--red); box-shadow: 0 0 10px rgba(248, 81, 73, 0.3); }
+      100% { border-color: var(--border-lite); box-shadow: none; }
+    }
+
+    /* ── Toggle Switch ──────────────────────────────────────────── */
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      border-top: 1px solid var(--border);
+      padding-top: 1.25rem;
+      font-size: 0.875rem;
+    }
+
+    .toggle-label {
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .checkbox-custom {
+      cursor: pointer;
+      width: 1rem;
+      height: 1rem;
+      accent-color: var(--red);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="demo-card">
+    <h1 class="demo-card-title">Project Alpha</h1>
+    <p class="demo-card-desc">
+      A lightweight cosmic style components library. Press Like to test optimistic state update.
+    </p>
+
+    <!-- Like Button (Pattern P22 target) -->
+    <button class="btn-like" onclick="toggleLike(this)">
+      <span class="heart-icon">♡</span>
+      <span>Like</span>
+      <span class="like-count">42</span>
+    </button>
+
+    <!-- Sim control -->
+    <div class="toggle-container">
+      <input type="checkbox" id="simulate-failure" class="checkbox-custom">
+      <label for="simulate-failure" class="toggle-label">Simulate server error (500)</label>
+    </div>
+  </div>
+
+  <script>
+    // Universal API call (bridges local file:// viewing to Node.js backend server)
+    function callAPI(isLiked, shouldFail) {
+      if (window.location.protocol === 'file:') {
+        console.log('[P22] file:// protocol. Running in offline simulation mode.');
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            if (shouldFail) {
+              reject(new Error('Simulated Server Error (500)'));
+            } else {
+              resolve({ success: true, likes: isLiked ? 41 : 43 });
+            }
+          }, 800);
+        });
+      }
+
+      // Real HTTP call to server.js
+      return fetch('/api/like', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ liked: !isLiked, simulateFailure: shouldFail })
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('HTTP ' + response.status + ' ' + response.statusText);
+        return response.json();
+      });
+    }
+
+    // Pattern P22 — Optimistic Update + DOM rollback
+    function toggleLike(btn) {
+      // 1. SAVE: Capture current exact DOM outerHTML before making changes
+      const fallbackHTML = btn.outerHTML;
+
+      // 2. OPTIMISTIC UPDATE: Apply DOM changes instantly
+      const isLiked = btn.classList.contains('liked');
+      const countEl = btn.querySelector('.like-count');
+      const heartEl = btn.querySelector('.heart-icon');
+      let count = parseInt(countEl.innerText);
+
+      if (isLiked) {
+        btn.classList.remove('liked');
+        heartEl.innerText = '♡';
+        countEl.innerText = count - 1;
+      } else {
+        btn.classList.add('liked');
+        heartEl.innerText = '♥';
+        countEl.innerText = count + 1;
+      }
+
+      // Add click pop micro-animation
+      btn.classList.add('pop-active');
+      setTimeout(() => btn.classList.remove('pop-active'), 150);
+
+      // Disable button pointer temporarily to prevent double click race
+      btn.style.pointerEvents = 'none';
+
+      // 3. ASYNC ACTION: Fire fetch request
+      const shouldFail = document.getElementById('simulate-failure').checked;
+
+      callAPI(isLiked, shouldFail)
+        .then(data => {
+          console.log('[P22] API Success. Server confirmed state. Total likes:', data.likes || countEl.innerText);
+          // Optional: sync dynamic server-confirmed count value
+          if (data.likes !== undefined) countEl.innerText = data.likes;
+          btn.style.pointerEvents = 'auto';
+        })
+        .catch(err => {
+          console.warn('[P22] API Failure: ' + err.message + '. Rolling back DOM state...');
+
+          // 4. ROLLBACK: Revert current element back to fallbackHTML after brief shake
+          btn.classList.add('shake-active');
+
+          setTimeout(() => {
+            // Create temporary container to parse standard HTML string into DOM
+            const parser = document.createElement('div');
+            parser.innerHTML = fallbackHTML;
+            const restoredBtn = parser.firstElementChild;
+            
+            // Replace current button with the original intact DOM backup
+            btn.replaceWith(restoredBtn);
+
+            // Brief red flash on border to give final visual feedback on error
+            restoredBtn.classList.add('rollback-flash');
+            setTimeout(() => restoredBtn.classList.remove('rollback-flash'), 500);
+          }, 300); // match shake animation duration
+        });
+    }
+  </script>
+
+</body>
+</html>

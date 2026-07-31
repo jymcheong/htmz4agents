@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>claude · sse chat</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: #0a0a0a;
+      color: #e2e8f0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-size: 15px;
+    }
+
+    header {
+      padding: 10px 20px;
+      border-bottom: 1px solid #1a1a1a;
+      font-size: 13px;
+      color: #475569;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    header .title { color: #94a3b8; }
+    header .dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; }
+    header .dot.idle { background: #475569; }
+
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      scrollbar-width: thin;
+      scrollbar-color: #1e1e1e transparent;
+    }
+
+    #messages::-webkit-scrollbar { width: 4px; }
+    #messages::-webkit-scrollbar-thumb { background: #1e1e1e; border-radius: 2px; }
+
+    .bubble {
+      max-width: 78%;
+      padding: 9px 13px;
+      border-radius: 5px;
+      font-size: 15px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .bubble.user {
+      align-self: flex-end;
+      background: #0f2a47;
+      color: #7dd3fc;
+      border: 1px solid #1e3a5f;
+    }
+
+    .bubble.asst {
+      align-self: flex-start;
+      background: #111111;
+      border: 1px solid #1a1a1a;
+      color: #cbd5e1;
+      min-width: 40px;
+      min-height: 36px;
+    }
+
+    .bubble.asst.error { border-color: #7f1d1d; color: #fca5a5; }
+
+    .cursor {
+      display: inline-block;
+      color: #475569;
+      animation: blink 0.85s step-end infinite;
+      font-weight: 500;
+      user-select: none;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0; }
+    }
+
+    /* spinner shown while waiting for first token */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #1e293b;
+      border-top-color: #7dd3fc;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+      vertical-align: middle;
+      margin: 4px 2px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    form {
+      display: flex;
+      gap: 8px;
+      padding: 12px 20px;
+      border-top: 1px solid #1a1a1a;
+      flex-shrink: 0;
+      background: #0a0a0a;
+    }
+
+    textarea {
+      flex: 1;
+      background: #111111;
+      border: 1px solid #1a1a1a;
+      border-radius: 4px;
+      color: #e2e8f0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      padding: 8px 12px;
+      resize: none;
+      height: 38px;
+      max-height: 140px;
+      line-height: 1.5;
+      outline: none;
+      transition: border-color 0.12s;
+    }
+
+    textarea:focus { border-color: #334155; }
+
+    button[type=submit] {
+      background: #0f2a47;
+      color: #7dd3fc;
+      border: 1px solid #1e3a5f;
+      border-radius: 4px;
+      padding: 0 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.12s, color 0.12s;
+      flex-shrink: 0;
+    }
+
+    button[type=submit]:hover:not(:disabled) { background: #1e40af; color: #fff; border-color: #2563eb; }
+    button[type=submit]:disabled { opacity: 0.35; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="dot idle" id="status-dot"></div>
+  <span class="title">claude</span>
+  <span>·</span>
+  <span>sse stream demo</span>
+</header>
+
+<div id="messages">
+  <!-- htmz tail — replaced each turn to grow the list -->
+  <div id="chat-tail"></div>
+</div>
+
+<form method="POST" action="/chat#chat-tail" target="htmz" id="chat-form">
+  <input type="hidden" name="prompt" id="prompt-value">
+  <textarea id="prompt-input" placeholder="ask anything — Enter to send, Shift+Enter for newline" autocomplete="off" autofocus></textarea>
+  <button type="submit">send ↵</button>
+</form>
+
+<!-- htmz transport iframe -->
+<iframe hidden name="htmz" id="htmz-frame"></iframe>
+
+<script>
+  const form         = document.getElementById('chat-form');
+  const textarea     = document.getElementById('prompt-input');
+  const promptHidden = document.getElementById('prompt-value');
+  const sendBtn      = form.querySelector('button');
+  const messages  = document.getElementById('messages');
+  const statusDot = document.getElementById('status-dot');
+  const htmzFrame = document.getElementById('htmz-frame');
+
+  let pendingSSE = null;
+
+  // ── form submit: stamp a unique id, record pending SSE ────────────────────
+  form.addEventListener('submit', (e) => {
+    const prompt = textarea.value.trim();
+    if (!prompt) { e.preventDefault(); return; }
+
+    const id = Date.now().toString(36);
+    form.action = `/chat?id=${id}#chat-tail`;
+    promptHidden.value = prompt;   // carry value in hidden input for POST
+    pendingSSE  = { id, prompt };
+
+    textarea.value = '';           // clear textarea for UX — after hidden is set
+    textarea.style.height = '38px';
+    sendBtn.disabled = true;
+    setActive(true);
+  });
+
+  // ── htmz onload: swap fragment into DOM, then open SSE ───────────────────
+  htmzFrame.onload = function () {
+    setTimeout(() => {
+      try {
+        const hash   = htmzFrame.contentWindow.location.hash;
+        if (!hash) return;
+        const target = document.querySelector(hash);
+        if (target) {
+          target.replaceWith(...htmzFrame.contentDocument.body.childNodes);
+          scrollBottom();
+        }
+      } catch (_) { return; }
+
+      if (pendingSSE) {
+        const { id, prompt } = pendingSSE;
+        pendingSSE = null;
+        streamResponse(id, prompt);
+      }
+    }, 0);
+  };
+
+  // ── SSE stream: spinner → typewriter drain ───────────────────────────────
+  function streamResponse(id, prompt) {
+    const el = document.getElementById(`msg-${id}`);
+    if (!el) return;
+
+    // show spinner while waiting for first token
+    el.innerHTML = '<span class="spinner"></span>';
+
+    const queue   = [];   // incoming chars waiting to render
+    let displayed = '';   // text rendered so far
+    let sseEnded  = false;
+    let rafId     = null;
+    let firstChunk = true;
+
+    // drain queue at ~60fps, 4 chars per frame ≈ 240 chars/sec — fast but readable
+    function drain() {
+      if (queue.length === 0) {
+        if (sseEnded) finish();
+        else rafId = null; // pause until more data
+        return;
+      }
+      const batch = queue.splice(0, 4).join('');
+      displayed += batch;
+      el.textContent = displayed;
+      const cur = document.createElement('span');
+      cur.className = 'cursor';
+      cur.textContent = '▋';
+      el.appendChild(cur);
+      scrollBottom();
+      rafId = requestAnimationFrame(drain);
+    }
+
+    function finish() {
+      el.querySelector('.cursor')?.remove();
+      setActive(false);
+      sendBtn.disabled = false;
+      textarea.focus();
+      scrollBottom();
+    }
+
+    const src = new EventSource(`/stream?prompt=${encodeURIComponent(prompt)}`);
+
+    src.onmessage = (e) => {
+      if (e.data === '[DONE]') {
+        src.close();
+        sseEnded = true;
+        if (!rafId && queue.length === 0) finish();
+        return;
+      }
+      if (e.data.startsWith('[ERROR]')) {
+        src.close();
+        el.classList.add('error');
+        el.textContent = e.data.slice(8);
+        setActive(false);
+        sendBtn.disabled = false;
+        return;
+      }
+
+      const chunk = e.data.replace(/\\n/g, '\n');
+
+      if (firstChunk) {
+        firstChunk = false;
+        el.innerHTML = ''; // drop spinner
+      }
+
+      for (const ch of chunk) queue.push(ch);
+      if (!rafId) rafId = requestAnimationFrame(drain);
+    };
+
+    src.onerror = () => {
+      src.close();
+      cancelAnimationFrame(rafId);
+      if (!displayed) { el.classList.add('error'); el.textContent = 'connection error'; }
+      else el.querySelector('.cursor')?.remove();
+      setActive(false);
+      sendBtn.disabled = false;
+    };
+  }
+
+  // ── helpers ───────────────────────────────────────────────────────────────
+  function scrollBottom() {
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function setActive(on) {
+    statusDot.classList.toggle('idle', !on);
+  }
+
+  textarea.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      form.requestSubmit();
+    }
+  });
+
+  textarea.addEventListener('input', () => {
+    textarea.style.height = '38px';
+    textarea.style.height = Math.min(textarea.scrollHeight, 140) + 'px';
+  });
+</script>
+
+</body>
+</html>

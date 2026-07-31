@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alpine + htmz Toast Demo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-8">
+
+  <!-- Card — id="card-area" makes it a htmz swap target -->
+  <div id="card-area" class="bg-white rounded-lg border border-gray-200 shadow-sm w-80">
+    <div class="p-6 border-b border-gray-100">
+      <h3 class="text-lg font-semibold text-gray-900">Demo Card</h3>
+      <p class="text-sm text-gray-500 mt-1">Click the button to trigger a toast via htmz</p>
+    </div>
+    <div class="p-6">
+      <p class="text-sm text-gray-700">
+        No backend. No custom JS. htmz swaps the toast fragment in,
+        Alpine auto-inits via MutationObserver, toast auto-dismisses after 3s.
+      </p>
+    </div>
+    <div class="p-6 pt-0 flex flex-col gap-2">
+      <!-- Toast trigger -->
+      <a href="toast.html#toast-area"
+         target="htmz"
+         class="block w-full text-center bg-gray-900 hover:bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded-md cursor-pointer transition-colors">
+        Do Action
+      </a>
+      <!-- Swap this card with new-card.html — proves Alpine re-inits on swapped content -->
+      <a href="new-card.html#card-area"
+         target="htmz"
+         class="block w-full text-center bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-md border border-gray-200 cursor-pointer transition-colors">
+        Swap Card
+      </a>
+    </div>
+  </div>
+
+  <!-- Toast mount point — htmz replaces this on click -->
+  <div id="toast-area" class="fixed bottom-6 right-6 z-50"></div>
+
+  <!-- htmz (166 bytes) -->
+  <iframe hidden name="htmz"
+    onload="setTimeout(()=>{with(contentDocument)body.id&&(top.document.querySelector('#'+body.id).outerHTML=body.innerHTML)},0)"
+    src="about:blank">
+  </iframe>
+
+</body>
+</html>

@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AVARA · Endpoint Controller</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@latest/dist/basecoat.cdn.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/basecoat-css@latest/dist/js/all.min.js" defer></script>
+
+  <style>
+    /* ── Linear design tokens ──────────────────────────────────────── */
+    :root {
+      --bg:            #08090a;
+      --panel:         #0f1011;
+      --surface:       #191a1b;
+      --surface-hover: rgba(255,255,255,0.04);
+      --fg:            #f7f8f8;
+      --fg-2:          #d0d6e0;
+      --fg-3:          #8a8f98;
+      --fg-4:          #62666d;
+      --border:        rgba(255,255,255,0.08);
+      --border-sub:    rgba(255,255,255,0.05);
+      --accent:        #5e6ad2;
+      --accent-h:      #7170ff;
+      --green:         #10b981;
+      --orange:        #f59e0b;
+      --red:           #ef4444;
+      --blue:          #3b82f6;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-feature-settings: 'cv01', 'ss03';
+      background: var(--bg);
+      color: var(--fg);
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* ── Basecoat patch for Linear palette ─────────────────────────── */
+    .btn          { background: var(--accent) !important; border-color: transparent !important; color: #fff !important; }
+    .btn:hover    { background: var(--accent-h) !important; }
+    .btn-outline  { background: rgba(255,255,255,0.02) !important; border-color: var(--border) !important; color: var(--fg-2) !important; }
+    .btn-outline:hover { background: rgba(255,255,255,0.05) !important; color: var(--fg) !important; }
+
+    /* ── Sidebar ───────────────────────────────────────────────────── */
+    #main-sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--panel);
+      border-right: 1px solid var(--border-sub);
+      display: flex;
+      flex-direction: column;
+      padding: 16px 10px;
+    }
+    .sidebar-logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      padding: 8px 12px;
+      margin-bottom: 20px;
+    }
+    .sidebar-section {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--fg-4);
+      padding: 0 12px;
+      margin-bottom: 6px;
+    }
+    .nav-list { list-style: none; display: flex; flex-direction: column; gap: 1px; margin-bottom: 20px; }
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 12px;
+      border-radius: 6px;
+      color: var(--fg-3);
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.12s;
+      background: transparent;
+      border: none;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+    }
+    .nav-btn:hover:not([aria-current="page"]) { background: rgba(255,255,255,0.04); color: var(--fg); }
+    .nav-btn[aria-current="page"]             { background: rgba(255,255,255,0.08); color: var(--fg); }
+    .nav-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.65; }
+    .nav-btn[aria-current="page"] .nav-icon  { opacity: 1; }
+    .nav-count {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(255,255,255,0.07);
+      border-radius: 4px;
+      padding: 1px 6px;
+      color: var(--fg-3);
+    }
+
+    /* ── Main area ──────────────────────────────────────────────────── */
+    #main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      background: var(--bg);
+    }
+
+    /* ── Fragment transitions ───────────────────────────────────────── */
+    #content-area > * { animation: frag-in 0.18s ease; }
+    @keyframes frag-in { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+    .fragment-loading { position: relative; pointer-events: none; opacity: 0.4; }
+    .fragment-loading::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.03) 50%, transparent 75%);
+      background-size: 400% 100%;
+      animation: shimmer 1.4s ease infinite;
+    }
+    @keyframes shimmer { 0% { background-position:100% 0; } 100% { background-position:-100% 0; } }
+    .frag-error { display:flex; align-items:center; gap:10px; padding:4rem 2rem; color:var(--red); font-size:14px; }
+
+    /* ── Shared Linear component classes (used in fragments) ────────── */
+
+    /* Page header */
+    .page-header {
+      height: 56px;
+      border-bottom: 1px solid var(--border-sub);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .page-title { font-size: 16px; font-weight: 590; letter-spacing: -0.01em; margin-right: auto; }
+
+    /* Search */
+    .search-input {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 11px;
+      width: 200px;
+      color: var(--fg-2);
+      font-size: 13px;
+      outline: none;
+      font-family: inherit;
+      transition: all 0.12s;
+    }
+    .search-input::placeholder { color: var(--fg-4); }
+    .search-input:focus { background: rgba(255,255,255,0.04); border-color: var(--accent); }
+
+    /* Buttons */
+    .btn-lin {
+      border: none; border-radius: 6px; padding: 5px 11px;
+      font-size: 13px; font-weight: 510; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: all 0.12s; font-family: inherit;
+    }
+    .btn-lin-primary { background: var(--accent); color: #fff; }
+    .btn-lin-primary:hover { background: var(--accent-h); }
+    .btn-lin-ghost { background: rgba(255,255,255,0.02); border: 1px solid var(--border); color: var(--fg-2); }
+    .btn-lin-ghost:hover { background: rgba(255,255,255,0.05); color: var(--fg); }
+
+    /* Status badges */
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 2px 8px; border-radius: 9999px;
+      font-size: 11.5px; font-weight: 510; white-space: nowrap;
+    }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+    .badge-active     { background: rgba(16,185,129,0.15);  color: var(--green); }
+    .badge-reported   { background: rgba(245,158,11,0.15);  color: var(--orange); }
+    .badge-failed     { background: rgba(239,68,68,0.15);   color: var(--red); }
+    .badge-retrying   { background: rgba(59,130,246,0.15);  color: var(--blue); }
+
+    /* Platform badges */
+    .platform-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 2px 7px; border-radius: 4px;
+      font-size: 11px; font-weight: 600; font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .platform-linux   { background: rgba(94,106,210,0.15); color: var(--accent); }
+    .platform-windows { background: rgba(59,130,246,0.12); color: var(--blue); }
+    .platform-darwin  { background: rgba(139,139,139,0.12); color: var(--fg-3); }
+
+    /* Endpoint rows */
+    .endpoint-row {
+      display: grid;
+      grid-template-columns: 200px 90px 100px 130px 150px 70px 140px 80px;
+      align-items: center;
+      gap: 16px;
+      padding: 11px 24px;
+      border-bottom: 1px solid var(--border-sub);
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .endpoint-row:hover { background: var(--surface-hover); }
+    .endpoint-row.header-row {
+      cursor: default; background: transparent !important;
+      border-bottom: 1px solid var(--border);
+      padding-top: 8px; padding-bottom: 8px;
+    }
+    .col-head { font-size: 13px; font-weight: 600; color: var(--fg-4); letter-spacing: 0.04em; text-transform: uppercase; }
+    .endpoint-hostname { font-size: 15px; font-weight: 510; color: var(--fg); font-family: 'JetBrains Mono', monospace; }
+    .endpoint-fqdn     { font-size: 13px; color: var(--fg-4); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+    .endpoint-os       { font-size: 14px; color: var(--fg-2); }
+    .endpoint-ip       { font-size: 14px; color: var(--fg-2); font-family: 'JetBrains Mono', monospace; }
+    .endpoint-ports    { font-size: 13px; color: var(--fg-3); font-family: 'JetBrains Mono', monospace; }
+    .endpoint-ts       { font-size: 13px; color: var(--fg-4); }
+
+    /* Stat cards */
+    .stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; padding: 20px 24px 0; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; }
+    .stat-label { font-size: 14px; color: var(--fg-3); margin-bottom: 6px; }
+    .stat-value { font-size: 32px; font-weight: 590; color: var(--fg); letter-spacing: -0.04em; line-height: 1; }
+    .stat-value-green { color: var(--green); }
+    .stat-value-warn  { color: var(--orange); }
+    .stat-sub   { font-size: 13px; color: var(--fg-4); margin-top: 5px; }
+    .stat-sub-ok  { color: var(--green); }
+    .stat-sub-warn { color: var(--orange); }
+    .stat-sub-err { color: var(--red); }
+
+    /* Network mode tag */
+    .net-tag {
+      font-size: 11px; font-family: 'JetBrains Mono', monospace; font-weight: 500;
+      padding: 2px 6px; border-radius: 4px; letter-spacing: 0.02em;
+    }
+    .net-zerotier { background: rgba(94,106,210,0.1); color: var(--accent); border: 1px solid rgba(94,106,210,0.2); }
+    .net-lan      { background: rgba(16,185,129,0.1); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+  </style>
+</head>
+<body>
+
+  <!-- ════════════ SIDEBAR ════════════ -->
+  <aside id="main-sidebar">
+    <div class="sidebar-logo">AVARA</div>
+
+    <div class="sidebar-section">Controller</div>
+    <ul class="nav-list">
+      <li>
+        <button class="nav-btn" id="nav-endpoints" onclick="navigateTo('endpoints')">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="2" y="2" width="5" height="5" rx="1"/>
+            <rect x="9" y="2" width="5" height="5" rx="1"/>
+            <rect x="2" y="9" width="5" height="5" rx="1"/>
+            <rect x="9" y="9" width="5" height="5" rx="1"/>
+          </svg>
+          Endpoints
+          <span class="nav-count" id="nav-endpoints-count">2</span>
+        </button>
+      </li>
+      <li>
+        <button class="nav-btn" id="nav-activity" onclick="navigateTo('activity')">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <polyline points="2,10 5,7 8,9 11,5 14,8"/>
+          </svg>
+          Activity
+        </button>
+      </li>
+    </ul>
+
+    <div class="sidebar-section">Dispatch</div>
+    <ul class="nav-list">
+      <li>
+        <button class="nav-btn" id="nav-sessions" onclick="navigateTo('sessions')">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M2 4h12v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4z"/>
+            <path d="M5 4V2h6v2"/>
+          </svg>
+          Sessions
+        </button>
+      </li>
+    </ul>
+  </aside>
+
+  <!-- ════════════ MAIN ════════════ -->
+  <main id="main-content">
+    <div id="content-area" style="flex:1;display:flex;flex-direction:column;">
+      <div style="display:flex;align-items:center;gap:10px;padding:3rem 2rem;color:var(--fg-4);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        <span>Loading…</span>
+      </div>
+    </div>
+
+    <iframe hidden name="htmz"
+      onload="setTimeout(()=>{
+        const h = contentWindow.location.hash;
+        if (!h) return;
+        document.querySelector(h)?.replaceWith(...contentWindow.document.body.childNodes);
+        if (window.basecoat) window.basecoat.initAll();
+      },0)">
+    </iframe>
+  </main>
+
+  <div id="toaster" class="toaster"></div>
+
+  <script>
+    const CONTROLLER_BASE = window.location.origin;
+    const NAV_MAP = {
+      endpoints: CONTROLLER_BASE + '/fragments/endpoints',
+      activity:  'fragments/endpoints.html',
+      sessions:  'fragments/endpoints.html',
+    };
+    const FRAGMENT_TIMEOUT = 5000;
+
+    function navigateTo(v) {
+      document.querySelectorAll('#main-sidebar button[aria-current]').forEach(b => b.removeAttribute('aria-current'));
+      const b = document.getElementById('nav-' + v);
+      if (b) b.setAttribute('aria-current', 'page');
+      loadFragment(NAV_MAP[v] || NAV_MAP.endpoints, 'content-area');
+    }
+
+    function loadFragment(src, tid) {
+      const slot = document.getElementById(tid);
+      if (slot) { slot.setAttribute('data-loading', ''); slot.classList.add('fragment-loading'); }
+
+      if (/^https?:\/\//.test(src)) {
+        // Absolute URL — use fetch (htmz iframe is same-origin only)
+        const timer = setTimeout(() => {
+          const s = document.getElementById(tid);
+          if (s && s.hasAttribute('data-loading'))
+            s.outerHTML = `<div id="${tid}" class="frag-error">⚠ Request timed out — server unreachable</div>`;
+        }, FRAGMENT_TIMEOUT);
+        fetch(src + '?t=' + Date.now())
+          .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+          .then(html => {
+            clearTimeout(timer);
+            const s = document.getElementById(tid);
+            if (!s) return;
+            const tmpl = document.createElement('template');
+            tmpl.innerHTML = html.trim();
+            const node = tmpl.content.firstElementChild;
+            s.replaceWith(node || tmpl.content);
+          })
+          .catch(err => {
+            clearTimeout(timer);
+            const s = document.getElementById(tid);
+            if (s) s.outerHTML = `<div id="${tid}" class="frag-error">⚠ ${err.message}</div>`;
+          });
+      } else {
+        // Relative URL — htmz iframe swap
+        const iframe = document.querySelector('iframe[name="htmz"]');
+        if (iframe) iframe.src = src + '?t=' + Date.now() + '#' + tid;
+        setTimeout(() => {
+          const s = document.getElementById(tid);
+          if (s && s.hasAttribute('data-loading'))
+            s.outerHTML = `<div id="${tid}" class="frag-error">⚠ Request timed out — server unreachable</div>`;
+        }, FRAGMENT_TIMEOUT);
+      }
+    }
+
+    let _statusFilter = '';
+
+    function filterEndpoints(q) {
+      _applyFilters(q, _statusFilter);
+    }
+
+    function filterByStatus(btn) {
+      document.querySelectorAll('.btn-filter').forEach(b => b.removeAttribute('aria-pressed'));
+      _statusFilter = btn.dataset.status || '';
+      btn.setAttribute('aria-pressed', 'true');
+      _applyFilters(document.querySelector('.search-input')?.value || '', _statusFilter);
+    }
+
+    function _applyFilters(q, status) {
+      q = q.toLowerCase();
+      const rows = document.querySelectorAll('.endpoint-row:not(.header-row)');
+      let visible = 0;
+      rows.forEach(r => {
+        const textMatch  = !q || r.textContent.toLowerCase().includes(q);
+        const statMatch  = !status || r.dataset.status === status;
+        const show = textMatch && statMatch;
+        r.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+      const empty = document.getElementById('ep-empty');
+      if (empty) empty.style.display = visible === 0 ? '' : 'none';
+    }
+
+    function showDetail(row) {
+      const existing = document.getElementById('ep-detail-dialog');
+      if (existing) existing.remove();
+
+      const d = row.dataset;
+      const statusClass = { active:'badge-active', reported:'badge-reported', retrying:'badge-retrying', failed:'badge-failed' }[d.status] || 'badge-reported';
+      const networkClass = d.networkMode === 'zerotier' ? 'net-zerotier' : 'net-lan';
+      const networkLabel = d.networkMode === 'zerotier' ? 'ZeroTier' : 'LAN';
+      const platformClass = { linux:'platform-linux', windows:'platform-windows', darwin:'platform-darwin' }[d.platform] || 'platform-linux';
+
+      const ztRow = d.ztNode ? `
+        <span style="color:var(--fg-3);">ZT Node</span>
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--accent);">${d.ztNode}</span>` : '';
+
+      const verifiedRow = d.verified ? `
+        <span style="color:var(--fg-3);">Verified</span>
+        <span style="color:var(--fg-2);">${d.verified}</span>` : '';
+
+      const notesRow = d.notes ? `
+        <div style="padding:10px 14px;background:rgba(245,158,11,0.06);border-radius:6px;border:1px solid rgba(245,158,11,0.18);font-size:12.5px;color:var(--orange);">
+          <span style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg-4);display:block;margin-bottom:4px;">Notes</span>
+          ${d.notes}
+        </div>` : '';
+
+      document.body.insertAdjacentHTML('beforeend', `
+<dialog id="ep-detail-dialog" style="
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  color:var(--fg);box-shadow:0 8px 40px rgba(0,0,0,0.7);padding:0;
+  max-width:540px;width:calc(100% - 32px);margin:auto;">
+  <div style="padding:20px 24px 16px;border-bottom:1px solid var(--border-sub);display:flex;align-items:flex-start;gap:12px;">
+    <div style="flex:1;">
+      <div style="font-size:15px;font-weight:590;letter-spacing:-0.01em;font-family:'JetBrains Mono',monospace;">${d.hostname}</div>
+      <div style="font-size:12px;color:var(--fg-4);margin-top:3px;font-family:'JetBrains Mono',monospace;">${d.fqdn}</div>
+    </div>
+    <span class="badge ${statusClass}"><span class="badge-dot"></span>${d.status.charAt(0).toUpperCase()+d.status.slice(1)}</span>
+    <button onclick="document.getElementById('ep-detail-dialog').close()" style="
+      background:transparent;border:none;color:var(--fg-3);cursor:pointer;font-size:20px;
+      line-height:1;padding:2px 4px;margin-left:4px;">×</button>
+  </div>
+  <div style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;">
+    <div style="display:grid;grid-template-columns:130px 1fr;gap:10px 16px;font-size:13px;align-items:center;">
+      <span style="color:var(--fg-3);">Platform</span>
+      <span class="platform-badge ${platformClass}">${d.platform}</span>
+      <span style="color:var(--fg-3);">OS</span>
+      <span style="color:var(--fg-2);">${d.os}</span>
+      <span style="color:var(--fg-3);">OS Family</span>
+      <span style="color:var(--fg-2);">${d.osFamily}</span>
+      <span style="color:var(--fg-3);">Kernel</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--fg-2);">${d.kernel}</span>
+      <span style="color:var(--fg-3);">SSH Target</span>
+      <span style="font-family:'JetBrains Mono',monospace;color:var(--fg-2);">${d.sshIp}:${d.sshPort}</span>
+      <span style="color:var(--fg-3);">Network</span>
+      <span class="net-tag ${networkClass}">${networkLabel}</span>
+      <span style="color:var(--fg-3);">Exposure</span>
+      <span style="color:var(--fg-2);">${d.networkExposure || '—'}</span>
+      ${ztRow}
+      <span style="color:var(--fg-3);">Open Ports</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--fg-2);">${d.openPorts}</span>
+      <span style="color:var(--fg-3);">Enrolled</span>
+      <span style="color:var(--fg-2);">${d.enrolled}</span>
+      ${verifiedRow}
+    </div>
+    <div style="padding:10px 14px;background:var(--bg);border-radius:6px;border:1px solid var(--border-sub);">
+      <div style="font-size:11px;font-weight:600;color:var(--fg-4);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px;">SSH Command</div>
+      <code style="font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--green);">ssh scanner-service@${d.sshIp} -p ${d.sshPort}</code>
+    </div>
+    ${notesRow}
+  </div>
+  <div style="padding:14px 24px;border-top:1px solid var(--border-sub);display:flex;justify-content:flex-end;gap:8px;">
+    <button class="btn-lin btn-lin-ghost" onclick="document.getElementById('ep-detail-dialog').close()">Close</button>
+    <button class="btn-lin btn-lin-primary" ${d.status !== 'active' ? 'disabled style="opacity:0.45;cursor:not-allowed;"' : ''}>Open SSH Session</button>
+  </div>
+</dialog>`);
+      document.getElementById('ep-detail-dialog').showModal();
+    }
+
+    function showEnrollModal() {
+      const existing = document.getElementById('enroll-dialog');
+      if (existing) existing.remove();
+
+      document.body.insertAdjacentHTML('beforeend', `
+<dialog id="enroll-dialog" style="
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  color:var(--fg);box-shadow:0 8px 40px rgba(0,0,0,0.7);padding:0;
+  max-width:580px;width:calc(100% - 32px);margin:auto;">
+  <div style="padding:20px 24px 16px;border-bottom:1px solid var(--border-sub);display:flex;align-items:center;gap:12px;">
+    <div style="flex:1;">
+      <div style="font-size:15px;font-weight:590;letter-spacing:-0.01em;">Enrol a new endpoint</div>
+      <div style="font-size:12px;color:var(--fg-4);margin-top:3px;">Run the 1-liner in an elevated session on the target host</div>
+    </div>
+    <button onclick="document.getElementById('enroll-dialog').close()" style="
+      background:transparent;border:none;color:var(--fg-3);cursor:pointer;font-size:20px;
+      line-height:1;padding:2px 4px;">×</button>
+  </div>
+  <div id="enroll-body" style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;">
+    <div style="display:flex;align-items:center;gap:8px;padding:3rem 0;justify-content:center;color:var(--fg-4);font-size:13px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+      Loading…
+    </div>
+  </div>
+  <div style="padding:14px 24px;border-top:1px solid var(--border-sub);display:flex;justify-content:flex-end;">
+    <button class="btn-lin btn-lin-ghost" onclick="document.getElementById('enroll-dialog').close()">Close</button>
+  </div>
+</dialog>`);
+
+      const dlg = document.getElementById('enroll-dialog');
+      dlg.showModal();
+
+      fetch(CONTROLLER_BASE + '/onboard/ips')
+        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(d => {
+          const ips = d.ips || [];
+          if (!ips.length) throw new Error('No IPs returned');
+          const opts = ips.map((ip, i) =>
+            `<option value="${ip}"${i===0?' selected':''}>${ip}</option>`).join('');
+          document.getElementById('enroll-body').innerHTML = `
+            <div>
+              <label style="font-size:15px;font-weight:600;color:var(--fg-2);display:block;margin-bottom:8px;">Controller IP</label>
+              <select id="enroll-ip-select" onchange="updateEnrollCmds(this.value)" style="
+                width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;
+                color:var(--fg);font-size:15px;font-family:'JetBrains Mono',monospace;
+                padding:10px 14px;outline:none;cursor:pointer;">${opts}</select>
+            </div>
+            <div>
+              <div style="font-size:15px;font-weight:600;color:var(--fg-3);margin-bottom:10px;">Linux</div>
+              <div style="display:flex;align-items:stretch;background:var(--bg);border:1px solid var(--border-sub);border-radius:6px;overflow:hidden;">
+                <code id="enroll-cmd-linux" style="flex:1;padding:16px 18px;font-family:'JetBrains Mono',monospace;font-size:16px;color:var(--green);word-break:break-all;line-height:1.7;"></code>
+                <button onclick="copyCmd(document.getElementById('enroll-cmd-linux').textContent,this)" style="
+                  flex-shrink:0;background:rgba(255,255,255,0.04);border:none;border-left:1px solid var(--border-sub);
+                  color:var(--fg-2);cursor:pointer;padding:0 20px;font-size:14px;font-family:inherit;
+                  transition:background 0.12s;">Copy</button>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:15px;font-weight:600;color:var(--fg-2);margin-bottom:10px;">Windows <span style="font-size:13px;color:var(--fg-4);font-weight:400;">(elevated PowerShell)</span></div>
+              <div style="display:flex;align-items:stretch;background:var(--bg);border:1px solid var(--border-sub);border-radius:6px;overflow:hidden;">
+                <code id="enroll-cmd-windows" style="flex:1;padding:16px 18px;font-family:'JetBrains Mono',monospace;font-size:16px;color:var(--blue);word-break:break-all;line-height:1.7;"></code>
+                <button onclick="copyCmd(document.getElementById('enroll-cmd-windows').textContent,this)" style="
+                  flex-shrink:0;background:rgba(255,255,255,0.04);border:none;border-left:1px solid var(--border-sub);
+                  color:var(--fg-2);cursor:pointer;padding:0 20px;font-size:14px;font-family:inherit;
+                  transition:background 0.12s;">Copy</button>
+              </div>
+            </div>`;
+          updateEnrollCmds(ips[0]);
+        })
+        .catch(err => {
+          document.getElementById('enroll-body').innerHTML =
+            `<div class="frag-error" style="padding:1rem 0;">⚠ ${err.message}</div>`;
+        });
+    }
+
+    function updateEnrollCmds(ip) {
+      const linux   = document.getElementById('enroll-cmd-linux');
+      const windows = document.getElementById('enroll-cmd-windows');
+      if (linux)   linux.textContent   = `curl -fsSL http://${ip}:8000/codes/onboard-linux | sudo bash`;
+      if (windows) windows.textContent = `iex (iwr http://${ip}:8000/codes/onboard-windows).Content`;
+    }
+
+    function copyCmd(cmd, btn) {
+      navigator.clipboard.writeText(cmd).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.style.color = 'var(--green)';
+        setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1800);
+      });
+    }
+
+    addEventListener('DOMContentLoaded', () => setTimeout(() => navigateTo('endpoints'), 100));
+  </script>
+</body>
+</html>

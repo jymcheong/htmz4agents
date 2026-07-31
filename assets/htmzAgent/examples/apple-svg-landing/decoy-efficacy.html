@@ -1,0 +1,73 @@
+<div id="decoy-content" class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center w-full">
+  
+  <!-- Left Side: Deception Info -->
+  <div class="space-y-6 text-center md:text-left">
+    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-widest">
+      Active Defense
+    </span>
+    <h2 class="text-3xl md:text-4xl font-extrabold font-title tracking-tight text-white leading-tight">
+      Decoy Route Saturation.
+    </h2>
+    <p class="text-zinc-400 text-sm leading-relaxed">
+      Invert attacker economics. The Quantum Core spins up hundreds of low-frequency, structurally perfect decoy files, sockets, and eBPF sensors in under 5ms, baiting adversaries into highly monitored traps.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start pt-2">
+      <div class="flex items-center gap-2 text-zinc-300 text-xs">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span>Honeypot Trigger: Instant Alert</span>
+      </div>
+      <div class="flex items-center gap-2 text-zinc-300 text-xs">
+        <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+        <span>Recursive Enumeration Trap</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Animated Decoy Network Graph -->
+  <div class="relative flex items-center justify-center">
+    <div class="absolute w-60 h-60 bg-emerald-500/10 rounded-full blur-[80px] -z-10"></div>
+    
+    <svg id="decoy-graph" viewBox="0 0 200 200" class="w-64 h-64 md:w-80 md:h-80 text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.15)]">
+      <!-- Network links (draw outline) -->
+      <line x1="100" y1="100" x2="40" y2="50" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4,4" class="decoy-link opacity-60" />
+      <line x1="100" y1="100" x2="160" y2="50" stroke="currentColor" stroke-width="1.5" class="decoy-link" />
+      <line x1="100" y1="100" x2="40" y2="150" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4,4" class="decoy-link opacity-60" />
+      <line x1="100" y1="100" x2="160" y2="150" stroke="currentColor" stroke-width="1.5" class="decoy-link" />
+
+      <!-- Radar pulses expanding from honey decoys -->
+      <circle cx="160" cy="50" r="10" fill="none" stroke="currentColor" stroke-width="1" class="glowing-radar origin-center" style="transform-origin: 160px 50px;" />
+      <circle cx="160" cy="150" r="10" fill="none" stroke="currentColor" stroke-width="1" class="glowing-radar origin-center" style="transform-origin: 160px 150px;" />
+
+      <!-- Central Core Hub -->
+      <g class="decoy-node opacity-0" style="transform-origin: 100px 100px;">
+        <circle cx="100" cy="100" r="14" fill="#18181b" stroke="#6366f1" stroke-width="2.5" />
+        <circle cx="100" cy="100" r="6" fill="#6366f1" />
+      </g>
+
+      <!-- Node 2: Real Database (Gray/Muted) -->
+      <g class="decoy-node opacity-0" style="transform-origin: 40px 50px;">
+        <circle cx="40" cy="50" r="10" fill="#18181b" stroke="#4b5563" stroke-width="2" />
+        <circle cx="40" cy="50" r="4" fill="#4b5563" />
+      </g>
+
+      <!-- Node 3: Honeypot Decoy (Bright Green/Glowing) -->
+      <g class="decoy-node opacity-0" style="transform-origin: 160px 50px;">
+        <circle cx="160" cy="50" r="12" fill="#18181b" stroke="currentColor" stroke-width="2.5" />
+        <circle cx="160" cy="50" r="5" fill="currentColor" class="animate-pulse" />
+      </g>
+
+      <!-- Node 4: Real Endpoint (Gray/Muted) -->
+      <g class="decoy-node opacity-0" style="transform-origin: 40px 150px;">
+        <circle cx="40" cy="150" r="10" fill="#18181b" stroke="#4b5563" stroke-width="2" />
+        <circle cx="40" cy="150" r="4" fill="#4b5563" />
+      </g>
+
+      <!-- Node 5: Honeypot Decoy (Bright Green/Glowing) -->
+      <g class="decoy-node opacity-0" style="transform-origin: 160px 150px;">
+        <circle cx="160" cy="150" r="12" fill="#18181b" stroke="currentColor" stroke-width="2.5" />
+        <circle cx="160" cy="150" r="5" fill="currentColor" class="animate-pulse" />
+      </g>
+    </svg>
+  </div>
+
+</div>

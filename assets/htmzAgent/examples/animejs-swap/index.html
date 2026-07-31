@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anime.js + htmz Fluid Swapping Demo</title>
+  
+  <!-- Inter & Plus Jakarta Sans Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Anime.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+  
+  <!-- Tailwind for quick utility layouts (modern design styled via custom classes) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0b0f19;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(31, 41, 234, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 50% 0%, rgba(236, 72, 153, 0.05) 0px, transparent 50%);
+    }
+    
+    .font-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    
+    /* Glassmorphism styling */
+    .glass-card {
+      background: rgba(17, 24, 39, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    }
+    
+    .glow-effect {
+      position: relative;
+    }
+    .glow-effect::before {
+      content: '';
+      position: absolute;
+      top: -2px; left: -2px; right: -2px; bottom: -2px;
+      background: linear-gradient(45deg, #4f46e5, #ec4899, #3b82f6, #10b981);
+      z-index: -1;
+      border-radius: 14px;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      filter: blur(8px);
+    }
+    .glow-effect:hover::before {
+      opacity: 0.6;
+    }
+
+    .form-input {
+      background: rgba(31, 41, 55, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+    .form-input:focus {
+      border-color: #6366f1;
+      background: rgba(31, 41, 55, 0.7);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+      outline: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-6 text-gray-100 overflow-hidden relative">
+
+  <!-- Background decorative glowing spheres -->
+  <div class="absolute w-96 h-96 bg-indigo-600 rounded-full blur-[120px] opacity-20 -top-12 -left-12 pointer-events-none"></div>
+  <div class="absolute w-96 h-96 bg-pink-600 rounded-full blur-[120px] opacity-10 bottom-12 right-12 pointer-events-none"></div>
+
+  <div class="w-full max-w-lg z-10">
+    <div class="text-center mb-8">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 mb-3 uppercase tracking-wider">
+        Anime.js + htmz Integration
+      </span>
+      <h1 class="text-3xl font-extrabold font-title tracking-tight text-white mb-2 bg-gradient-to-r from-white via-slate-100 to-indigo-200 bg-clip-text text-transparent">
+        Interactive Swap Test
+      </h1>
+      <p class="text-slate-400 text-sm">Proving fluid client-side micro-animations with 166-byte partial swaps</p>
+    </div>
+
+    <!-- Swap Slot Frame: id="form-area" -->
+    <div id="form-area" class="glass-card rounded-2xl p-8 md:p-10 transition-all duration-300">
+      
+      <!-- Initial State: Newsletter Promo -->
+      <div id="newsletter-promo" class="flex flex-col gap-6">
+        <div class="text-center md:text-left">
+          <h2 class="text-2xl font-bold font-title text-white tracking-tight">Stay Ahead of the Curve</h2>
+          <p class="text-slate-300 text-sm mt-2 leading-relaxed">
+            Get weekly, bite-sized deep dives on low-latency systems, memory-native AI architectures, and kernel-level Linux observability.
+          </p>
+        </div>
+
+        <!-- Staggered Bullet Items -->
+        <ul class="flex flex-col gap-3 py-2 text-sm text-slate-300">
+          <li class="bullet-item flex items-start gap-3">
+            <span class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-indigo-500/10 text-indigo-400 font-semibold text-xs mt-0.5">⚡</span>
+            <span><strong>eBPF & System Observability:</strong> Bypassing security boundaries and building zero-trust kernel instrumentation sensors.</span>
+          </li>
+          <li class="bullet-item flex items-start gap-3">
+            <span class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-indigo-500/10 text-indigo-400 font-semibold text-xs mt-0.5">🧠</span>
+            <span><strong>Memory-Native AI Scaffolds:</strong> Techniques to let small 8B models out-perform frontier giants via execution guardrails.</span>
+          </li>
+          <li class="bullet-item flex items-start gap-3">
+            <span class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-indigo-500/10 text-indigo-400 font-semibold text-xs mt-0.5">🛠️</span>
+            <span><strong>Zero-Trust Tooling Gateways:</strong> Securing MCP servers and containerized workspaces against prompt injections.</span>
+          </li>
+        </ul>
+
+        <!-- Trigger Button -->
+        <div class="mt-2">
+          <button onclick="animateSwap('email-capture.html', 'form-area')"
+             class="glow-effect block w-full py-3.5 px-6 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-semibold text-center rounded-xl shadow-lg shadow-indigo-600/20 cursor-pointer transition-all duration-300 transform active:scale-[0.98]">
+            Sign Up for the Newsletter
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- htmz micro-iframe configured with entry hook -->
+  <iframe hidden name="htmz"
+    onload="setTimeout(()=>{
+      if (!contentWindow.location.hash) return;
+      const id = contentWindow.location.hash.substring(1);
+      const target = top.document.getElementById(id);
+      if (target) {
+        target.innerHTML = contentDocument.body.innerHTML;
+        // Trigger the entry animation hook
+        if (window.triggerEntryAnimation) {
+          window.triggerEntryAnimation(id);
+        }
+      }
+    }, 0)"
+    src="about:blank">
+  </iframe>
+
+  <!-- Client-side Animation Script -->
+  <script>
+    // Initial Stagger animation on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      anime.timeline({
+        easing: 'easeOutQuart'
+      })
+      .add({
+        targets: '.glass-card',
+        opacity: [0, 1],
+        scale: [0.93, 1],
+        translateY: [40, 0],
+        duration: 800
+      })
+      .add({
+        targets: '.bullet-item',
+        opacity: [0, 1],
+        translateX: [-20, 0],
+        delay: anime.stagger(150),
+        duration: 650
+      }, '-=400');
+    });
+
+    // 1. Exit Animation (Phase 1)
+    function animateSwap(srcUrl, targetId) {
+      const slot = document.getElementById(targetId);
+      if (!slot) return;
+      
+      // Animate card content outward (sliding left and fading out)
+      anime({
+        targets: slot.firstElementChild || slot,
+        opacity: 0,
+        translateX: -50,
+        scale: 0.96,
+        duration: 300,
+        easing: 'easeInQuint',
+        complete: function() {
+          // 2. Perform Swap (Phase 2)
+          const iframe = document.querySelector('iframe[name="htmz"]');
+          if (iframe) {
+            iframe.src = srcUrl + '?t=' + Date.now() + '#' + targetId;
+          }
+        }
+      });
+    }
+
+    // 3. Entry Animation Hook (Phase 3)
+    window.triggerEntryAnimation = function(targetId) {
+      const slot = document.getElementById(targetId);
+      if (!slot) return;
+      
+      const newContent = slot.firstElementChild || slot;
+      
+      // Set initial state before transition
+      newContent.style.opacity = '0';
+      newContent.style.transform = 'translateX(50px) scale(0.96)';
+      
+      // Animate card content inward (sliding from the right and scaling back to 1)
+      anime({
+        targets: newContent,
+        opacity: [0, 1],
+        translateX: [50, 0],
+        scale: [0.96, 1],
+        duration: 500,
+        easing: 'easeOutBack'
+      });
+    };
+  </script>
+
+</body>
+</html>

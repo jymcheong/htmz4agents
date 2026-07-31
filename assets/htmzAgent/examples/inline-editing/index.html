@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inline Editing · htmz P17</title>
+
+  <!-- Modern Outfit Typography & Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Basecoat CSS (Tailwind v4 CDN) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@latest/dist/basecoat.cdn.min.css">
+
+  <style>
+    /* ── Harmonious HSL Cyber Dark Theme ─────────────────────────── */
+    :root {
+      --bg:           hsl(222, 47%, 4%);
+      --bg-card:      hsla(222, 47%, 6%, 0.85);
+      --border:       hsla(217, 32%, 17%, 0.65);
+      --border-lite:  hsla(217, 32%, 25%, 0.8);
+      --text:         hsl(210, 40%, 98%);
+      --muted:        hsl(215, 20%, 65%);
+      --emerald:      hsl(142, 70%, 50%);
+      --emerald-bg:   hsla(142, 70%, 50%, 0.08);
+      --emerald-lite: hsl(142, 70%, 65%);
+      --red:          hsl(350, 89%, 60%);
+      --red-bg:       hsla(350, 89%, 60%, 0.08);
+      --amber:        hsl(38, 92%, 50%);
+      --amber-bg:     hsla(38, 92%, 50%, 0.08);
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at 50% 50%, hsl(222, 47%, 7%), var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem;
+      margin: 0;
+    }
+
+    /* ── Glassmorphic Premium Layout ────────────────────────────── */
+    .glass-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 32rem;
+      padding: 2.25rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 
+                  0 0 50px rgba(16, 185, 129, 0.02);
+      backdrop-filter: blur(16px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Top glow detail */
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--emerald), transparent);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .card-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .card-subtitle {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.35rem;
+      margin-bottom: 0;
+    }
+
+    .status-badge {
+      font-size: 0.7rem;
+      font-family: monospace;
+      background: var(--emerald-bg);
+      color: var(--emerald-lite);
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Settings Row Layout (Vanilla CSS) ───────────────────────── */
+    .settings-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.15rem 0;
+      border-bottom: 1px solid var(--border);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .row-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .row-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .row-value {
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-top: 0.4rem;
+    }
+
+    /* Value modifiers */
+    .text-default { color: var(--text); }
+    .text-prod { color: var(--red); font-weight: 600; }
+    .text-staging { color: var(--amber); font-weight: 600; }
+    .text-dev { color: var(--emerald-lite); font-weight: 600; }
+
+    /* ── Edit Form Row Layout ────────────────────────────────────── */
+    .settings-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding: 1.15rem 0;
+      border-bottom: 1px solid var(--border);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .form-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .error-msg {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--red);
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 0.5rem;
+      width: 100%;
+    }
+
+    /* ── Form Controls ───────────────────────────────────────────── */
+    .input-control, .select-control {
+      flex: 1;
+      font-size: 0.875rem;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid var(--border-lite);
+      border-radius: 8px;
+      padding: 0.5rem 0.85rem;
+      color: var(--text);
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+
+    .input-control:focus, .select-control:focus {
+      outline: none;
+      border-color: var(--emerald);
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    .input-control.is-invalid, .select-control.is-invalid {
+      border-color: var(--red);
+    }
+    .input-control.is-invalid:focus, .select-control.is-invalid:focus {
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+    }
+
+    /* ── Skeletons for Loading State ────────────────────────────── */
+    .row-skeleton {
+      animation: pulse-shimmer 1.2s infinite ease-in-out;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 1.15rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .skel-bar {
+      height: 1rem;
+      background: var(--border-lite);
+      border-radius: 4px;
+    }
+    .skel-bar.small { width: 30%; height: 0.75rem; }
+    .skel-bar.medium { width: 60%; }
+
+    @keyframes pulse-shimmer {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 0.85; }
+    }
+
+    /* ── Custom Select Arrow ────────────────────────────────────── */
+    select {
+      background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%238b949e' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+      background-position: right 0.75rem center;
+      background-repeat: no-repeat;
+      background-size: 1.25rem;
+      padding-right: 2.5rem !important;
+      appearance: none;
+    }
+
+    /* ── Premium Buttons ────────────────────────────────────────── */
+    .btn-edit {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--emerald-lite);
+      background: var(--emerald-bg);
+      border: 1px solid rgba(16, 185, 129, 0.15);
+      padding: 0.35rem 0.85rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-edit:hover {
+      background: hsla(142, 70%, 50%, 0.16);
+      border-color: rgba(16, 185, 129, 0.35);
+      color: var(--emerald);
+      transform: translateY(-1px);
+    }
+
+    .btn-save {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: hsl(222, 47%, 4%);
+      background: var(--emerald);
+      border: none;
+      padding: 0.5rem 1.15rem;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-save:hover {
+      background: var(--emerald-lite);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-cancel {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-lite);
+      padding: 0.5rem 1.15rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-cancel:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: var(--muted);
+    }
+
+    /* ── Global Toasts (Pattern 11) ──────────────────────────────── */
+    #toast-container {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      z-index: 10000;
+    }
+
+    .toast {
+      padding: 0.85rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      border: 1px solid transparent;
+      animation: toast-in 250ms cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 200ms ease;
+    }
+
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateY(12px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .toast-success {
+      background: var(--emerald-bg);
+      border-color: rgba(16, 185, 129, 0.2);
+      color: var(--emerald-lite);
+    }
+
+    .toast-error {
+      background: var(--red-bg);
+      border-color: rgba(239, 68, 68, 0.2);
+      color: var(--red);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Main Card Container ────────────────────────────────────────── -->
+  <div class="glass-card">
+    <div class="card-header">
+      <div>
+        <h1 class="card-title">
+          <span>🛡️</span> Secure Node Settings
+        </h1>
+        <p class="card-subtitle">
+          P17 inline editing demonstrates server validation + instant cancellation.
+        </p>
+      </div>
+      <span class="status-badge">
+        online
+      </span>
+    </div>
+
+    <!-- ── Settings List ── -->
+    <div class="settings-list">
+      
+      <!-- Hostname Row -->
+      <div id="row-hostname" data-outcome="success" class="settings-row">
+        <div class="row-info">
+          <div class="row-label">Hostname</div>
+          <div class="row-value text-default" id="val-hostname">PROD-SEC-NODE-01</div>
+        </div>
+        <button class="btn-edit" onclick="editField('hostname')">
+          Edit
+        </button>
+      </div>
+
+      <!-- Environment Row -->
+      <div id="row-environment" data-outcome="success" class="settings-row">
+        <div class="row-info">
+          <div class="row-label">Environment</div>
+          <div class="row-value text-prod" id="val-environment">Production</div>
+        </div>
+        <button class="btn-edit" onclick="editField('environment')">
+          Edit
+        </button>
+      </div>
+
+      <!-- Owner Email Row -->
+      <div id="row-email" data-outcome="success" class="settings-row">
+        <div class="row-info">
+          <div class="row-label">Owner Email</div>
+          <div class="row-value text-default" id="val-email">security-ops@enterprise.com</div>
+        </div>
+        <button class="btn-edit" onclick="editField('email')">
+          Edit
+        </button>
+      </div>
+
+      <!-- CPU Cores Row -->
+      <div id="row-cores" data-outcome="success" class="settings-row">
+        <div class="row-info">
+          <div class="row-label">CPU Cores</div>
+          <div class="row-value text-default" id="val-cores">16</div>
+        </div>
+        <button class="btn-edit" onclick="editField('cores')">
+          Edit
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Footer Meta -->
+    <div class="mt-6 flex items-center justify-between text-[11px] text-[var(--muted)] border-t border-[var(--border)] pt-4" style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);border-top:1px solid var(--border);padding-top:1rem;margin-top:1.5rem">
+      <span>Secure Channel: <b>AES-GCM-256</b></span>
+      <span>Port: <b>8810</b></span>
+    </div>
+  </div>
+
+  <!-- ── Toast Container (Pattern 11) ───────────────────────────────── -->
+  <div id="toast-container"></div>
+
+  <!-- ── Hidden Stable State Manager (Pattern 6) ────────────────────── -->
+  <div id="host-state" hidden></div>
+
+  <!-- ── Interactive Logic (Vanilla JS Layer) ───────────────────────── -->
+  <script>
+    // State registry for client-side instant cancellation
+    window.lastDisplayHTML = {};
+
+    // 3. Core htmz transport with cache busting
+    function loadFragment(url) {
+      const iframe = document.getElementById('htmz-iframe');
+      
+      let cleanUrl = url;
+      let hash = '';
+      
+      const hashIndex = url.indexOf('#');
+      if (hashIndex !== -1) {
+        cleanUrl = url.substring(0, hashIndex);
+        hash = url.substring(hashIndex);
+      }
+      
+      const separator = cleanUrl.includes('?') ? '&' : '?';
+      const timestampedUrl = `${cleanUrl}${separator}t=${Date.now()}${hash}`;
+
+      // Trigger navigation inside hidden iframe
+      iframe.src = timestampedUrl;
+    }
+
+    // 4. Centralized Lifecycle Bridge & Visual Toast Feedback (Pattern 10 & 11)
+    function htmzOnload(iframe) {
+      // Guard iframe: avoid syntax errors on initial page load / empty iframe
+      try {
+        if (!iframe || !iframe.contentWindow) return;
+        
+        // Safely check location href to avoid cross-origin or uninitialized errors
+        let loc;
+        try {
+          loc = iframe.contentWindow.location;
+        } catch (e) {
+          return; // Browser blocked access or uninitialized
+        }
+        
+        if (!loc || loc.href === 'about:blank') return;
+        
+        let hash = loc.hash;
+        if (!hash) return;
+
+        // Clean query parameters from hash if any leaked in
+        const queryIndex = hash.indexOf('?');
+        if (queryIndex !== -1) {
+          hash = hash.substring(0, queryIndex);
+        }
+
+        const target = document.querySelector(hash);
+        if (!target) return;
+
+        const iframeBody = iframe.contentWindow.document.body;
+        const iframeRoot = iframeBody.firstElementChild;
+
+        if (iframeRoot) {
+          const outcome = iframeRoot.getAttribute('data-outcome');
+          const field = hash.replace('#row-', '');
+
+          if (outcome === 'success') {
+            showToast(`Successfully saved ${field}!`, 'success');
+          } else if (outcome === 'invalid') {
+            showToast(`Validation error on ${field}!`, 'error');
+          }
+        }
+
+        // Perform the clean DOM replace
+        target.replaceWith(...iframeBody.childNodes);
+
+        // Auto-initialise Basecoat UI components inside the swapped fragment (if present)
+        if (window.basecoat && typeof window.basecoat.initAll === 'function') {
+          window.basecoat.initAll();
+        }
+
+      } catch (err) {
+        console.error('[htmz] Frame load error:', err);
+      }
+    }
+
+    // 5. Ephemeral Toast Notification Engine (Pattern 11)
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      let icon = '✓';
+      let toastClass = 'toast-success';
+      
+      if (type === 'error') {
+        icon = '⚠';
+        toastClass = 'toast-error';
+      } else if (type === 'info') {
+        icon = '🛈';
+        toastClass = 'bg-[#1e293b] border-[#334155] text-slate-300';
+      }
+
+      toast.className = `toast ${toastClass}`;
+      toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+      
+      container.appendChild(toast);
+      
+      // Auto dismiss after 3.5 seconds
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-8px) scale(0.95)';
+        setTimeout(() => toast.remove(), 200);
+      }, 3500);
+    }
+  </script>
+
+  <!-- ── Pure htmz hidden iframe with Centralized Lifecycle Bridge ────── -->
+  <iframe hidden name="htmz" id="htmz-iframe" onload="htmzOnload(this)"></iframe>
+
+  <!-- ── Interactive Logic (Vanilla JS Layer) ───────────────────────── -->
+  <script>
+    // 1. Trigger Inline Edit Form (GET Fragment Swap)
+    function editField(field) {
+      const row = document.getElementById(`row-${field}`);
+      if (!row) return;
+
+      // Check if we are already in an edit state to prevent double clicks
+      if (row.tagName === 'FORM') return;
+
+      // Capture and cache original outerHTML for instant client-side cancellation
+      window.lastDisplayHTML[field] = row.outerHTML;
+
+      // Instantly swap in a shimmering visual skeleton (Zero-latency layout stability)
+      row.outerHTML = `
+        <div id="row-${field}" class="row-skeleton">
+          <div class="skel-bar small"></div>
+          <div class="skel-bar medium"></div>
+        </div>
+      `;
+
+      // Trigger standard htmz swap
+      loadFragment(`/api/edit/${field}#row-${field}`);
+    }
+
+    // 2. Client-side Instant Cancel (Zero-roundtrip rollbacks)
+    function cancelEdit(field) {
+      const formRow = document.getElementById(`row-${field}`);
+      const fallbackHTML = window.lastDisplayHTML[field];
+
+      if (formRow && fallbackHTML) {
+        // Parse raw fallback string into element and replace
+        const parser = document.createElement('div');
+        parser.innerHTML = fallbackHTML;
+        const restoredNode = parser.firstElementChild;
+        
+        formRow.replaceWith(restoredNode);
+        showToast(`Cancelled editing ${field}`, 'info');
+      }
+    }
+  </script>
+</body>
+</html>

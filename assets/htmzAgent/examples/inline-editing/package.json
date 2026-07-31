@@ -1,0 +1,20 @@
+{
+  "name": "htmz-inline-editing",
+  "version": "1.0.0",
+  "description": "htmz P17 Inline Editing Example",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "htmz",
+    "basecoat",
+    "inline-editing"
+  ],
+  "author": "Alfred",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

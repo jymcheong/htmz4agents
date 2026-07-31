@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Polling · htmz P21</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@latest/dist/basecoat.cdn.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/basecoat-css@latest/dist/js/all.min.js" defer></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <style>
+    :root {
+      --bg:          #0d1117;
+      --bg-card:     #161b22;
+      --border:      #21262d;
+      --border-lite: #30363d;
+      --text:        #e6edf3;
+      --muted:       #8b949e;
+      --green:       #3fb950;
+      --yellow:      #d29922;
+      --red:         #f85149;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      margin: 0;
+    }
+
+    .demo-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      width: 100%;
+      max-width: 22rem;
+      overflow: hidden;
+    }
+
+    .demo-card-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .demo-card-title {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      margin: 0 0 0.25rem;
+    }
+    .demo-card-desc {
+      font-size: 0.8125rem;
+      color: var(--muted);
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    /* ── Swap target ─────────────────────────────────────────────── */
+    #clock-display {
+      padding: 2rem 1.5rem;
+      text-align: center;
+      min-height: 9rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .clock-time {
+      font-family: 'JetBrains Mono', monospace !important;
+      font-size: 2.75rem !important;
+      font-weight: 300 !important;
+      letter-spacing: -0.02em;
+      margin: 0 !important;
+      font-variant-numeric: tabular-nums;
+    }
+    .clock-date {
+      font-size: 0.8125rem;
+      color: var(--muted);
+      margin: 0;
+    }
+    .clock-tz {
+      font-size: 0.6875rem;
+      padding: 0.2rem 0.65rem;
+      background: rgba(63, 185, 80, 0.08);
+      border: 1px solid rgba(63, 185, 80, 0.25);
+      border-radius: 9999px;
+      color: var(--green);
+    }
+    .clock-error {
+      font-size: 0.8125rem;
+      color: var(--red);
+    }
+
+    /* ── Footer ──────────────────────────────────────────────────── */
+    .card-footer {
+      padding: 0.875rem 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .poll-meta {
+      font-size: 0.75rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      flex-shrink: 0;
+      animation: blink 2s ease-in-out infinite;
+    }
+    .status-dot.paused {
+      background: var(--yellow);
+      animation: none;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.25; }
+    }
+
+    /* Basecoat dark overrides */
+    .btn-outline {
+      border-color: var(--border-lite) !important;
+      color: var(--muted) !important;
+    }
+    .btn-outline:hover {
+      background: rgba(255,255,255,0.06) !important;
+      border-color: var(--muted) !important;
+      color: var(--text) !important;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="demo-card">
+    <div class="demo-card-header">
+      <h1 class="demo-card-title">Singapore Time</h1>
+      <p class="demo-card-desc">Polls timeapi.io every 3s. Pauses when tab is hidden.</p>
+    </div>
+
+    <!--
+      #clock-display — P21 swap target.
+      Vanilla JS replaceWith() swaps this on every poll.
+      Lives outside the Alpine component — vanilla DOM, not Alpine reactive.
+    -->
+    <div id="clock-display">
+      <p class="clock-time">--:--:--</p>
+      <p class="clock-date">connecting…</p>
+    </div>
+
+    <!--
+      Alpine owns UI state only: running/paused indicator, poll count.
+      setInterval lives here because it is tightly coupled to running state.
+      Actual fetch + DOM swap is delegated to vanilla fetchAndSwap().
+    -->
+    <div class="card-footer" x-data="poller">
+      <span class="poll-meta">
+        <span class="status-dot" :class="{ paused: !running }"></span>
+        <span x-text="running ? 'Live · every 3s' : 'Paused'"></span>
+        &nbsp;·&nbsp;
+        <span x-text="count + ' polls'"></span>
+      </span>
+      <button class="btn btn-outline btn-sm" @click="toggle()">
+        <span x-text="running ? 'Pause' : 'Resume'"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- htmz — idle in this demo; shows architectural placement -->
+  <iframe hidden name="htmz"
+    onload="setTimeout(()=>{
+      const h = contentWindow.location.hash;
+      if (!h) return;
+      document.querySelector(h)?.replaceWith(...contentWindow.document.body.childNodes);
+      if (window.basecoat) window.basecoat.initAll();
+    },0)">
+  </iframe>
+
+  <script>
+    /*
+      Vanilla JS — System API layer.
+      Owns: fetch, DOM construction, replaceWith().
+      Called by Alpine poller; never touches Alpine state directly.
+    */
+    async function fetchAndSwap() {
+      try {
+        const res = await fetch('https://timeapi.io/api/time/current/zone?timeZone=Asia/Singapore');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const d = await res.json();
+
+        const pad  = n => String(n).padStart(2, '0');
+        const time = `${pad(d.hour)}:${pad(d.minute)}:${pad(d.seconds)}`;
+        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        const date = `${days[new Date(d.dateTime).getDay()]}, ${d.day} ${months[d.month - 1]} ${d.year}`;
+
+        const next = document.createElement('div');
+        next.id = 'clock-display';
+        next.innerHTML = `
+          <p class="clock-time">${time}</p>
+          <p class="clock-date">${date}</p>
+          <span class="clock-tz">SGT · UTC+08:00</span>
+        `;
+        document.getElementById('clock-display')?.replaceWith(next);
+      } catch (err) {
+        const next = document.createElement('div');
+        next.id = 'clock-display';
+        next.innerHTML = `<p class="clock-error">⚠ ${err.message}</p>`;
+        document.getElementById('clock-display')?.replaceWith(next);
+      }
+    }
+
+    /*
+      Alpine component — UI State layer.
+      Owns: running/paused indicator, poll count, interval lifecycle.
+    */
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('poller', () => ({
+        running: true,
+        count:   0,
+        _id:     null,
+
+        init() {
+          this._poll();
+          this._start();
+
+          // Pause when tab hidden — clear interval; resume when visible again
+          document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+              this._stop();
+            } else if (this.running) {
+              this._poll();
+              this._start();
+            }
+          });
+        },
+
+        async _poll() {
+          await fetchAndSwap();
+          this.count++;
+        },
+
+        _start() { this._id = setInterval(() => this._poll(), 3000); },
+        _stop()  { clearInterval(this._id); this._id = null; },
+
+        toggle() {
+          if (this.running) {
+            this._stop();
+            this.running = false;
+          } else {
+            this._poll();
+            this._start();
+            this.running = true;
+          }
+        }
+      }));
+    });
+  </script>
+
+</body>
+</html>

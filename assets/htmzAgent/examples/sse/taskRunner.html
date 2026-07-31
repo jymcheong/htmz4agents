@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>task runner · sse</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: #0a0a0a;
+      color: #e2e8f0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-size: 14px;
+    }
+
+    /* ── header ─────────────────────────────────────────────────────────── */
+    header {
+      padding: 10px 20px;
+      border-bottom: 1px solid #1a1a1a;
+      font-size: 13px;
+      color: #475569;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    header .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #22c55e;
+      flex-shrink: 0;
+    }
+    header .dot.idle { background: #1e293b; }
+    header .title { color: #94a3b8; }
+    header .sep { color: #1e293b; }
+    #state-label { font-size: 11px; color: #334155; margin-left: 2px; }
+    #state-label.running { color: #22c55e; }
+    #state-label.done    { color: #475569; }
+    #state-label.error   { color: #ef4444; }
+
+    /* ── task bar ────────────────────────────────────────────────────────── */
+    #task-bar {
+      display: flex;
+      gap: 6px;
+      padding: 10px 20px;
+      border-bottom: 1px solid #1a1a1a;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    #task-bar form { margin: 0; }
+
+    #task-bar button {
+      background: #111111;
+      color: #64748b;
+      border: 1px solid #1e293b;
+      border-radius: 3px;
+      padding: 5px 13px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.1s, color 0.1s, border-color 0.1s;
+    }
+    #task-bar button:hover:not(:disabled) {
+      background: #0f2a47;
+      color: #7dd3fc;
+      border-color: #1e3a5f;
+    }
+    #task-bar button:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    /* ── output panel ────────────────────────────────────────────────────── */
+    #output-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .task-placeholder {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1e293b;
+      font-size: 13px;
+      letter-spacing: 0.05em;
+    }
+
+    .task-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 20px;
+      border-bottom: 1px solid #111111;
+      flex-shrink: 0;
+    }
+    .task-name { color: #94a3b8; font-size: 12px; }
+    .task-ts   { color: #1e293b; font-size: 11px; }
+
+    #trace-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #94a3b8;
+      white-space: pre;
+      scrollbar-width: thin;
+      scrollbar-color: #1e1e1e transparent;
+    }
+    #trace-body::-webkit-scrollbar { width: 4px; }
+    #trace-body::-webkit-scrollbar-thumb { background: #1e1e1e; border-radius: 2px; }
+    #trace-body.error { color: #fca5a5; }
+
+    /* ── spinner ─────────────────────────────────────────────────────────── */
+    .spinner {
+      display: inline-block;
+      width: 12px; height: 12px;
+      border: 2px solid #1e293b;
+      border-top-color: #7dd3fc;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="dot idle" id="status-dot"></div>
+  <span class="title">task runner</span>
+  <span class="sep">·</span>
+  <span>sse stream</span>
+  <span id="state-label"></span>
+</header>
+
+<div id="task-bar">
+  <form method="POST" action="/header?task=ps#output-panel" target="htmz">
+    <button type="submit">ps aux</button>
+  </form>
+  <form method="POST" action="/header?task=disk#output-panel" target="htmz">
+    <button type="submit">df -h</button>
+  </form>
+  <form method="POST" action="/header?task=git-log#output-panel" target="htmz">
+    <button type="submit">git log</button>
+  </form>
+  <form method="POST" action="/header?task=claude#output-panel" target="htmz">
+    <button type="submit">claude -p</button>
+  </form>
+</div>
+
+<div id="output-panel">
+  <div class="task-placeholder">← select a task</div>
+</div>
+
+<!-- htmz transport iframe -->
+<iframe hidden name="htmz" id="htmz-frame"></iframe>
+
+<script>
+  const statusDot  = document.getElementById('status-dot');
+  const stateLabel = document.getElementById('state-label');
+  const htmzFrame  = document.getElementById('htmz-frame');
+  const taskBar    = document.getElementById('task-bar');
+  const buttons    = () => taskBar.querySelectorAll('button');
+
+  let currentSSE = null;
+
+  // ── task button click: cancel any running SSE, disable buttons ────────
+  taskBar.addEventListener('submit', () => {
+    if (currentSSE) { currentSSE.close(); currentSSE = null; }
+    setButtons(false);
+    setState('running');
+  });
+
+  // ── htmz onload: swap fragment → open SSE ────────────────────────────
+  htmzFrame.onload = function () {
+    setTimeout(() => {
+      try {
+        const hash = htmzFrame.contentWindow.location.hash;
+        if (!hash) return;
+        const target = document.querySelector(hash);
+        if (target) {
+          target.replaceWith(...htmzFrame.contentDocument.body.childNodes);
+        }
+      } catch (_) { return; }
+
+      const traceBody = document.getElementById('trace-body');
+      if (traceBody && traceBody.dataset.task) {
+        streamTask(traceBody.dataset.task);
+      }
+    }, 0);
+  };
+
+  // ── SSE stream: spinner → line-by-line append ────────────────────────
+  function streamTask(name) {
+    const traceBody = document.getElementById('trace-body');
+    if (!traceBody) return;
+
+    let firstLine = true;
+
+    currentSSE = new EventSource(`/run?task=${encodeURIComponent(name)}`);
+
+    currentSSE.onmessage = (e) => {
+      if (e.data === '[DONE]') {
+        currentSSE.close();
+        currentSSE = null;
+        finish('done');
+        return;
+      }
+
+      if (e.data.startsWith('[ERROR]')) {
+        currentSSE.close();
+        currentSSE = null;
+        traceBody.classList.add('error');
+        traceBody.textContent = e.data.slice(8).trimStart();
+        finish('error');
+        return;
+      }
+
+      if (firstLine) {
+        firstLine = false;
+        traceBody.textContent = '';  // drop spinner
+      }
+
+      traceBody.textContent += e.data + '\n';
+      traceBody.scrollTop = traceBody.scrollHeight;
+    };
+
+    currentSSE.onerror = () => {
+      currentSSE.close();
+      currentSSE = null;
+      if (firstLine) {
+        traceBody.classList.add('error');
+        traceBody.textContent = 'connection error';
+      }
+      finish('error');
+    };
+  }
+
+  // ── helpers ───────────────────────────────────────────────────────────
+  function finish(state) {
+    setButtons(true);
+    setState(state);
+    if (state !== 'running') statusDot.classList.add('idle');
+  }
+
+  function setState(state) {
+    statusDot.classList.toggle('idle', state !== 'running');
+    stateLabel.className = state;
+    stateLabel.textContent = state === 'running' ? 'running…' : state;
+  }
+
+  function setButtons(enabled) {
+    buttons().forEach(b => b.disabled = !enabled);
+  }
+</script>
+
+</body>
+</html>

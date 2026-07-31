@@ -1,0 +1,5 @@
+[
+  { "id": 1, "name": "Widget Alpha", "price": "$12.00", "stock": 42, "note": "Best seller this month." },
+  { "id": 2, "name": "Widget Beta", "price": "$18.50", "stock": 7,  "note": "Low stock — order soon." },
+  { "id": 3, "name": "Widget Gamma", "price": "$9.25",  "stock": 0,  "note": "Out of stock." }
+]

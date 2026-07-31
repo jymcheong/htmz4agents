@@ -1,0 +1,96 @@
+<div id="host-003-card" class="host-card high">
+  <div class="card-body">
+    <div class="top-row">
+      <div>
+        <div class="hostname">ENDPOINT-003</div>
+        <div class="host-sub">Internal · Windows Server 2012 R2 · HR zone · EOL OS</div>
+      </div>
+      <div class="badge-group">
+        <span class="badge-high">High</span>
+        <span class="badge-schedule">Schedule It</span>
+      </div>
+    </div>
+
+    <div class="verdict-block">
+      <p>End-of-life OS with no vendor patch available. The vulnerability is not yet actively exploited but the attack surface is permanent — it cannot be closed through patching. Micropatch is the only viable fix; CAB this week before exposure window widens.</p>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-pill"><span class="stat-label">CVSS</span><div class="stat-divider"></div><span class="stat-value">8.4</span></div>
+      <div class="stat-pill"><span class="stat-label">EPSS</span><div class="stat-divider"></div><span class="stat-value">0.61</span></div>
+      <div class="stat-pill"><span class="stat-label">KEV</span><div class="stat-divider"></div><span class="stat-value ok">✗ No</span></div>
+      <div class="stat-pill"><span class="stat-label">Exposure</span><div class="stat-divider"></div><span class="stat-value ok">Internal</span></div>
+      <div class="stat-pill"><span class="stat-label">CVEs</span><div class="stat-divider"></div><span class="stat-value">2</span></div>
+    </div>
+  </div>
+
+  <button class="accordion-toggle" onclick="toggleAccordion(this)" aria-expanded="false">
+    <span>See detail</span>
+    <span class="accordion-arrow">▾</span>
+  </button>
+
+  <div class="detail-panel">
+    <div class="detail-inner">
+
+      <div class="detail-section">
+        <div class="detail-heading">AI Reasoning</div>
+        <p>Windows Server 2012 R2 reached end-of-extended-support on October 10, 2023. Microsoft will not release a patch for CVE-2025-2847. EPSS of 0.61 indicates meaningful exploit probability within 30 days. The host is internal-only with no internet egress, which reduces immediate risk — but the permanent unpatched state means risk only increases over time. Micropatch via 0patch is the only viable remediation path without OS upgrade.</p>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-heading">Active CVEs</div>
+        <div class="cve-item">
+          <div class="cve-id">CVE-2025-2847</div>
+          <div class="cve-meta">
+            <div class="cve-desc">Windows kernel memory corruption — no official patch (EOL OS)</div>
+            <div class="cve-tags"><span class="cve-tag">No patch available</span><span class="cve-tag">EOL</span></div>
+          </div>
+          <div class="cve-score score-high">8.4</div>
+        </div>
+        <div class="cve-item">
+          <div class="cve-id">CVE-2024-8833</div>
+          <div class="cve-meta">
+            <div class="cve-desc">LDAP client information disclosure via malformed server response</div>
+            <div class="cve-tags"><span class="cve-tag">Info disclosure</span></div>
+          </div>
+          <div class="cve-score score-medium">5.9</div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-heading">Recommended Actions</div>
+        <ol class="action-steps">
+          <li>Deploy 0patch micropatch for CVE-2025-2847 — in-memory fix, no reboot required</li>
+          <li>Schedule OS upgrade to Windows Server 2022 — long-term resolution</li>
+          <li>Restrict inbound connections to named internal hosts only (network ACL)</li>
+          <li>Raise CAB ticket for micropatch deployment this week</li>
+        </ol>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-heading">Asset Context</div>
+        <div class="context-grid">
+          <span class="ctx-label">Owner</span><span class="ctx-value">hr-systems@company.com</span>
+          <span class="ctx-label">Change Window</span><span class="ctx-value">Sunday 02:00–06:00 SGT</span>
+          <span class="ctx-label">Mission Impact</span><span class="ctx-value">Degraded — HR data access</span>
+          <span class="ctx-label">Last Scanned</span><span class="ctx-value">2026-04-30 05:29</span>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-heading">Actions</div>
+        <div class="action-btn-row">
+          <button class="action-btn btn-notify"
+                  onclick="callAPI('inform-owner', 'ENDPOINT-003', 'hr-systems@company.com')">
+            ✉ Inform Owner
+          </button>
+          <button class="action-btn btn-rescan"
+                  onclick="callAPI('rescan', 'ENDPOINT-003', null)">
+            ↺ Rescan Asset
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

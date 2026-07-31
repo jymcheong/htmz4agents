@@ -1,0 +1,16 @@
+{
+  "name": "htmz-file-upload",
+  "version": "1.0.0",
+  "description": "htmz P20 File Upload Example",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["htmz", "file-upload", "busboy", "pattern-20"],
+  "author": "Alfred",
+  "license": "ISC",
+  "dependencies": {
+    "busboy": "^1.6.0"
+  }
+}

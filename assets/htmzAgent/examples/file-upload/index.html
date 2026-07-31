@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Upload · htmz P20</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@latest/dist/basecoat.cdn.min.css">
+
+  <style>
+    :root {
+      --bg:           #0d1117;
+      --bg-card:      #161b22;
+      --border:       #21262d;
+      --border-lite:  #30363d;
+      --text:         #e6edf3;
+      --muted:        #8b949e;
+      --green:        #3fb950;
+      --green-bg:     rgba(63, 185, 80, 0.08);
+      --green-border: rgba(63, 185, 80, 0.25);
+      --red:          #f85149;
+      --red-bg:       rgba(248, 81, 73, 0.08);
+      --red-border:   rgba(248, 81, 73, 0.25);
+      --blue:         #58a6ff;
+      --blue-bg:      rgba(88, 166, 255, 0.08);
+      --blue-border:  rgba(88, 166, 255, 0.25);
+    }
+
+    [x-cloak] { display: none !important; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+      background: var(--bg) !important;
+      color: var(--text) !important;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      margin: 0 !important;
+    }
+
+    /* ── Page header ──────────────────────────────────────────────── */
+    .page-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .page-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      background: var(--blue-bg);
+      border: 1px solid var(--blue-border);
+      border-radius: 99px;
+      color: var(--blue);
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.25rem 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .page-title {
+      font-size: 1.375rem !important;
+      font-weight: 600 !important;
+      margin: 0 0 0.375rem !important;
+      color: var(--text) !important;
+    }
+    .page-desc {
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    /* ── Card ─────────────────────────────────────────────────────── */
+    .upload-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 28rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    }
+    .card-body {
+      padding: 1.5rem;
+    }
+
+    /* ── Drop zone ────────────────────────────────────────────────── */
+    .drop-zone {
+      border: 2px dashed var(--border-lite);
+      border-radius: 8px;
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 180ms ease, background 180ms ease;
+      user-select: none;
+    }
+    .drop-zone:hover,
+    .drop-zone.drag-over {
+      border-color: var(--blue);
+      background: var(--blue-bg);
+    }
+    .drop-zone.uploading {
+      cursor: default;
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    .drop-icon {
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+      display: block;
+      line-height: 1;
+    }
+    .drop-primary {
+      font-size: 0.9375rem;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+    .drop-secondary {
+      font-size: 0.8125rem;
+      color: var(--muted);
+    }
+    .drop-types {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.75rem;
+      opacity: 0.65;
+      letter-spacing: 0.02em;
+    }
+
+    /* ── Progress ─────────────────────────────────────────────────── */
+    .progress-section {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .progress-filename {
+      font-size: 0.8125rem;
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 18rem;
+    }
+    .progress-pct {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--blue);
+      flex-shrink: 0;
+      margin-left: 0.5rem;
+    }
+    .progress-track {
+      height: 4px;
+      background: var(--border-lite);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--blue);
+      border-radius: 99px;
+      transition: width 100ms ease-out;
+    }
+
+    /* ── Result slot ──────────────────────────────────────────────── */
+    .result-slot {
+      padding: 0 1.5rem 1.5rem;
+    }
+    .result-slot:empty {
+      padding: 0;
+    }
+
+    /* ── Fragment styles (used by inline JS + fragment files) ─────── */
+    .result-fragment {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.875rem;
+      padding: 1rem 1.125rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .result-success { border-color: var(--green-border) !important; background: var(--green-bg) !important; }
+    .result-error   { border-color: var(--red-border)   !important; background: var(--red-bg)   !important; }
+    .result-pending { border-color: var(--blue-border)  !important; background: var(--blue-bg)  !important; }
+
+    .result-icon {
+      flex-shrink: 0;
+      width: 1.75rem;
+      height: 1.75rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.875rem;
+      font-weight: 700;
+    }
+    .success-icon { background: var(--green); color: #0d1117; }
+    .error-icon   { background: var(--red);   color: #0d1117; }
+    .pending-icon { background: var(--blue-bg); border: 1px solid var(--blue-border); }
+
+    .result-body  { flex: 1; min-width: 0; }
+    .result-title {
+      font-size: 0.9375rem !important;
+      font-weight: 600 !important;
+      margin: 0 0 0.125rem !important;
+    }
+    .result-success .result-title { color: var(--green) !important; }
+    .result-error   .result-title { color: var(--red)   !important; }
+    .result-pending .result-title { color: var(--blue)  !important; }
+
+    .result-filename,
+    .result-detail {
+      font-size: 0.8125rem;
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .result-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.25rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .badge {
+      background: var(--border);
+      border-radius: 4px;
+      padding: 0.125rem 0.375rem;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Spinner ──────────────────────────────────────────────────── */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--blue-border);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 700ms linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Upload again ─────────────────────────────────────────────── */
+    .upload-again {
+      padding: 0 1.5rem 1.25rem;
+      text-align: right;
+    }
+    .btn-reset {
+      background: none;
+      border: none;
+      color: var(--blue);
+      font-size: 0.8125rem;
+      font-family: inherit;
+      cursor: pointer;
+      padding: 0;
+    }
+    .btn-reset:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <div class="page-header">
+    <div class="page-badge">htmz · Pattern 20</div>
+    <h1 class="page-title">File Upload</h1>
+    <p class="page-desc">XHR progress · Alpine state · Pattern 10 outcomes</p>
+  </div>
+
+  <!--
+    P20: XHR (not htmz iframe) is the transport for file uploads.
+    The htmz iframe cannot report upload progress. XHR's xhr.upload.onprogress
+    fires with bytes sent; Alpine drives the progress bar. When the XHR
+    completes, the server's HTML fragment response is manually swapped into
+    #upload-result — mimicking exactly what htmz would do via iframe.
+  -->
+  <div x-data="uploader()" x-cloak class="upload-card">
+
+    <div class="card-body">
+
+      <!-- Drop zone -->
+      <div class="drop-zone"
+           :class="{ 'drag-over': isDragging, 'uploading': status === 'uploading' }"
+           @click="triggerPicker()"
+           @dragover.prevent="isDragging = true"
+           @dragleave.prevent="isDragging = false"
+           @drop.prevent="onDrop($event)">
+        <span class="drop-icon">&#8679;</span>
+        <div class="drop-primary">Drop a file or click to browse</div>
+        <div class="drop-secondary">Max 5 MB per file</div>
+        <div class="drop-types">JPEG &middot; PNG &middot; GIF &middot; WebP &middot; PDF &middot; TXT</div>
+      </div>
+
+      <!-- Hidden file input — triggered by drop zone click -->
+      <input type="file" id="file-input" style="display:none"
+             accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.txt"
+             @change="onFileChange($event)">
+
+      <!-- Progress section: visible only while uploading -->
+      <div x-show="status === 'uploading'" x-cloak class="progress-section">
+        <div class="progress-meta">
+          <span class="progress-filename" x-text="filename"></span>
+          <span class="progress-pct" x-text="progress + '%'"></span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" :style="'width: ' + progress + '%'"></div>
+        </div>
+      </div>
+    </div>
+
+    <!--
+      Pattern 10 result slot — starts empty.
+      Server returns one of three fragments into this div:
+        pending  → fragments/uploading.html  (injected immediately by JS)
+        success  → successFragment()         (injected by xhr.onload on 200)
+        error    → errorFragment()           (injected by xhr.onload on validation fail)
+    -->
+    <div id="upload-result" class="result-slot"></div>
+
+    <!-- Upload again: shown after any terminal outcome -->
+    <div x-show="status === 'done'" x-cloak class="upload-again">
+      <button class="btn-reset" @click="reset()">Upload another file &rarr;</button>
+    </div>
+
+  </div>
+
+  <script>
+    // uploadingHTML — injected client-side the moment XHR starts, before the
+    // server has responded. The progress bar is in the main page (Alpine-driven),
+    // so this fragment is just a pending indicator in the result slot.
+    const uploadingHTML = `
+      <div class="result-fragment result-pending" data-outcome="pending">
+        <div class="result-icon pending-icon"><span class="spinner"></span></div>
+        <div class="result-body">
+          <div class="result-title">Uploading&#8230;</div>
+          <div class="result-detail">Sending file to server</div>
+        </div>
+      </div>`;
+
+    // networkErrorHTML — fallback for xhr.onerror (no HTTP response at all)
+    const networkErrorHTML = `
+      <div class="result-fragment result-error" data-outcome="error">
+        <div class="result-icon error-icon">&#10005;</div>
+        <div class="result-body">
+          <div class="result-title">Upload failed</div>
+          <div class="result-detail">Network error. Check your connection and try again.</div>
+        </div>
+      </div>`;
+
+    function uploader() {
+      return {
+        status: 'idle',   // idle | uploading | done
+        progress: 0,
+        filename: '',
+        isDragging: false,
+
+        triggerPicker() {
+          if (this.status === 'uploading') return;
+          document.getElementById('file-input').click();
+        },
+
+        onFileChange(event) {
+          const file = event.target.files[0];
+          if (!file) return;
+          this.startUpload(file);
+        },
+
+        onDrop(event) {
+          this.isDragging = false;
+          if (this.status === 'uploading') return;
+          const file = event.dataTransfer.files[0];
+          if (!file) return;
+          this.startUpload(file);
+        },
+
+        startUpload(file) {
+          const self = this;
+          self.status = 'uploading';
+          self.progress = 0;
+          self.filename = file.name;
+
+          // Pattern 10 — pending state: inject uploading placeholder immediately
+          document.getElementById('upload-result').innerHTML = uploadingHTML;
+
+          const formData = new FormData();
+          formData.append('file', file);
+
+          const xhr = new XMLHttpRequest();
+
+          // P20 core: XHR progress drives Alpine progress field
+          xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+              self.progress = Math.round((e.loaded / e.total) * 100);
+            }
+          };
+
+          // Pattern 10 — server returns success or error fragment as response body
+          xhr.onload = function() {
+            document.getElementById('upload-result').innerHTML = xhr.responseText;
+            self.status = 'done';
+          };
+
+          // Network-level error (no HTTP response)
+          xhr.onerror = function() {
+            document.getElementById('upload-result').innerHTML = networkErrorHTML;
+            self.status = 'done';
+          };
+
+          xhr.open('POST', '/upload');
+          xhr.send(formData);
+        },
+
+        reset() {
+          this.status = 'idle';
+          this.progress = 0;
+          this.filename = '';
+          document.getElementById('upload-result').innerHTML = '';
+          document.getElementById('file-input').value = '';
+        }
+      };
+    }
+  </script>
+
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+</body>
+</html>

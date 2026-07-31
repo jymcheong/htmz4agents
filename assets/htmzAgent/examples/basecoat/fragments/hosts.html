@@ -1,0 +1,66 @@
+<div id="content-area" class="px-16 py-7" style="max-width:900px;margin:0 auto;width:100%">
+
+
+  <div class="overflow-x-auto rounded-lg border border-[#30363d]">
+    <table class="table">
+      <thead>
+        <tr>
+          <th style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em">Host</th>
+          <th style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em">OS</th>
+          <th style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em">Zone</th>
+          <th style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em">Severity</th>
+          <th style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em">CVSS</th>
+          <th style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em">CVEs</th>
+          <th style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="font-medium" style="font-family:'JetBrains Mono',monospace;font-size:0.875rem;color:#e6edf3">ENDPOINT-001</td>
+          <td style="font-size:0.875rem;color:#c9d1d9">Windows Server 2019</td>
+          <td style="font-size:0.875rem;color:#c9d1d9">Finance</td>
+          <td><span class="badge-destructive" style="font-family:'JetBrains Mono',monospace;font-size:0.6875rem;font-weight:700;text-transform:uppercase">Critical</span></td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:0.875rem;color:#ff7b72">9.8</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:0.875rem;color:#8b949e">7</td>
+          <td><button class="btn-outline btn-sm" onclick="openHostDetail('ENDPOINT-001')">Details</button></td>
+        </tr>
+        <tr>
+          <td class="font-medium" style="font-family:'JetBrains Mono',monospace;font-size:0.875rem;color:#e6edf3">ENDPOINT-002</td>
+          <td style="font-size:0.875rem;color:#c9d1d9">Ubuntu 20.04</td>
+          <td style="font-size:0.875rem;color:#c9d1d9">DevOps</td>
+          <td><span class="badge-destructive" style="font-family:'JetBrains Mono',monospace;font-size:0.6875rem;font-weight:700;text-transform:uppercase">Critical</span></td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:0.875rem;color:#ff7b72">9.1</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:0.875rem;color:#8b949e">4</td>
+          <td><button class="btn-outline btn-sm" onclick="openHostDetail('ENDPOINT-002')">Details</button></td>
+        </tr>
+        <tr>
+          <td class="font-medium" style="font-family:'JetBrains Mono',monospace;font-size:0.875rem;color:#e6edf3">ENDPOINT-003</td>
+          <td style="font-size:0.875rem;color:#c9d1d9">Windows Server 2012 R2</td>
+          <td style="font-size:0.875rem;color:#c9d1d9">HR</td>
+          <td><span class="badge" style="font-family:'JetBrains Mono',monospace;font-size:0.6875rem;font-weight:700;text-transform:uppercase">High</span></td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:0.875rem;color:#e3b341">8.4</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:0.875rem;color:#8b949e">2</td>
+          <td><button class="btn-outline btn-sm" onclick="openHostDetail('ENDPOINT-003')">Details</button></td>
+        </tr>
+        <tr>
+          <td class="font-medium" style="font-family:'JetBrains Mono',monospace;font-size:0.875rem;color:#e6edf3">ENDPOINT-019</td>
+          <td style="font-size:0.875rem;color:#c9d1d9">Debian 11</td>
+          <td style="font-size:0.875rem;color:#c9d1d9">DevOps</td>
+          <td><span class="badge-destructive" style="font-family:'JetBrains Mono',monospace;font-size:0.6875rem;font-weight:700;text-transform:uppercase">Critical</span></td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:0.875rem;color:#ff7b72">9.4</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:0.875rem;color:#8b949e">3</td>
+          <td><button class="btn-outline btn-sm" onclick="openHostDetail('ENDPOINT-019')">Details</button></td>
+        </tr>
+        <tr>
+          <td class="font-medium" style="font-family:'JetBrains Mono',monospace;font-size:0.875rem;color:#e6edf3">ENDPOINT-045</td>
+          <td style="font-size:0.875rem;color:#c9d1d9">RHEL 8</td>
+          <td style="font-size:0.875rem;color:#c9d1d9">Finance</td>
+          <td><span class="badge" style="font-family:'JetBrains Mono',monospace;font-size:0.6875rem;font-weight:700;text-transform:uppercase">High</span></td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:0.875rem;color:#e3b341">7.8</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:0.875rem;color:#8b949e">1</td>
+          <td><button class="btn-outline btn-sm" onclick="openHostDetail('ENDPOINT-045')">Details</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

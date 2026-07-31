@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quantum Core — Apple-Style SVG Landing</title>
+  
+  <!-- Inter and Plus Jakarta Sans Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Anime.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+  
+  <!-- Tailwind for quick premium grid/layout styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #000000;
+      color: #f5f5f7;
+    }
+    
+    .font-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    
+    /* Apple active tab indicator */
+    .tab-btn {
+      color: #86868b;
+      transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    .tab-btn.active {
+      color: #f5f5f7;
+      border-color: #f5f5f7;
+    }
+    
+    /* Glowing accents */
+    .neon-text-indigo {
+      text-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+    }
+    .neon-text-emerald {
+      text-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between py-12 px-6 overflow-x-hidden relative">
+
+  <!-- Subtle grid overlay -->
+  <div class="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none"></div>
+
+  <!-- Header / Navigation -->
+  <header class="w-full max-w-5xl mx-auto flex justify-between items-center z-10 mb-8">
+    <div class="flex items-center gap-2">
+      <span class="text-xl font-bold font-title tracking-tight text-white">QUANTUM<span class="text-indigo-500 font-extrabold">CORE</span></span>
+    </div>
+    <div class="text-xs text-[#86868b] tracking-widest uppercase">Agentic Compute Module</div>
+  </header>
+
+  <!-- Main Hero Canvas -->
+  <main class="w-full max-w-5xl mx-auto flex flex-col items-center justify-center flex-grow z-10 my-6">
+    
+    <!-- Apple-style Navigation Tabs -->
+    <div class="flex justify-center border-b border-zinc-800/80 w-full max-w-xl mb-12 gap-8 md:gap-12">
+      <button onclick="animateTabSwap('architecture-fragment.html', 'feature-slot', this)" 
+              class="tab-btn active pb-3 text-sm font-semibold border-b-2 border-transparent focus:outline-none">
+        Silicon Architecture
+      </button>
+      <button onclick="animateTabSwap('decoy-efficacy.html', 'feature-slot', this)" 
+              class="tab-btn pb-3 text-sm font-semibold border-b-2 border-transparent focus:outline-none">
+        Decoy Networks
+      </button>
+      <button onclick="animateTabSwap('performance-metrics.html', 'feature-slot', this)" 
+              class="tab-btn pb-3 text-sm font-semibold border-b-2 border-transparent focus:outline-none">
+        Performance
+      </button>
+    </div>
+
+    <!-- Swap Target Frame: id="feature-slot" -->
+    <div id="feature-slot" class="w-full max-w-4xl min-h-[420px] flex items-center justify-center">
+      
+      <!-- Default View: Core Silicon Architecture -->
+      <div id="architecture-content" class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center w-full">
+        
+        <!-- Left Side: Silicon Info -->
+        <div class="space-y-6 text-center md:text-left">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase tracking-widest">
+            Hardware Acceleration
+          </span>
+          <h2 class="text-3xl md:text-4xl font-extrabold font-title tracking-tight text-white leading-tight">
+            The Silicon Blueprint of Autonomous Observability.
+          </h2>
+          <p class="text-zinc-400 text-sm leading-relaxed">
+            Engineered specifically for low-latency agent loops. The Quantum Core features dedicated silicon for real-time memory synchronization and out-of-band telemetry interception.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start pt-2">
+            <div class="flex items-center gap-2 text-zinc-300 text-xs">
+              <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+              <span>12nm Agent Process</span>
+            </div>
+            <div class="flex items-center gap-2 text-zinc-300 text-xs">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span>68x Decoy Density</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side: Animated SVG Circuit Chip -->
+        <div class="relative flex items-center justify-center">
+          <!-- Background Glow shadow -->
+          <div class="absolute w-60 h-60 bg-indigo-500/10 rounded-full blur-[80px] -z-10"></div>
+          
+          <svg id="neural-core" viewBox="0 0 200 200" class="w-64 h-64 md:w-80 md:h-80 text-indigo-400 drop-shadow-[0_0_15px_rgba(129,140,248,0.2)]">
+            <!-- Silicon Die Frame -->
+            <rect x="25" y="25" width="150" height="150" rx="16" fill="none" stroke="currentColor" stroke-width="2.5" class="circuit-path" />
+            <!-- Inside Silicon Ring -->
+            <rect x="50" y="50" width="100" height="100" rx="10" fill="none" stroke="currentColor" stroke-width="1.5" class="circuit-path" />
+            
+            <!-- Connection Pins (Top) -->
+            <path d="M45 10 L45 25 M65 10 L65 25 M85 10 L85 25 M105 10 L105 25 M125 10 L125 25 M145 10 L145 25 M155 10 L155 25" stroke="currentColor" stroke-width="2" class="circuit-path" />
+            <!-- Connection Pins (Bottom) -->
+            <path d="M45 175 L45 190 M65 175 L65 190 M85 175 L85 190 M105 175 L105 190 M125 175 L125 190 M145 175 L145 190 M155 175 L155 190" stroke="currentColor" stroke-width="2" class="circuit-path" />
+            <!-- Connection Pins (Left) -->
+            <path d="M10 45 L25 45 M10 65 L25 65 M10 85 L25 85 M10 105 L25 105 M10 125 L25 125 M10 145 L25 145 M10 155 L25 155" stroke="currentColor" stroke-width="2" class="circuit-path" />
+            <!-- Connection Pins (Right) -->
+            <path d="M175 45 L190 45 M175 65 L190 65 M175 85 L190 85 M175 105 L190 105 M175 125 L190 125 M175 145 L190 145 M175 155 L190 155" stroke="currentColor" stroke-width="2" class="circuit-path" />
+
+            <!-- Core Logic Bus Channels (Concentric Blocks & Bus Bars) -->
+            <rect x="72" y="72" width="56" height="56" rx="6" fill="none" stroke="currentColor" stroke-width="1.5" class="circuit-path" />
+            <rect x="86" y="86" width="28" height="28" rx="4" fill="none" stroke="currentColor" stroke-width="1.2" class="circuit-path" />
+            <path d="M100 50 L100 72 M100 128 L100 150 M50 100 L72 100 M128 100 L150 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" class="circuit-path" />
+            
+            <!-- Silicon Core Node -->
+            <circle cx="100" cy="100" r="10" fill="currentColor" class="glowing-core opacity-0" />
+          </svg>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full max-w-5xl mx-auto flex justify-between items-center text-xs text-[#86868b] border-t border-zinc-900 pt-8 z-10">
+    <div>Designed for high-performance sandboxes.</div>
+    <div class="hover:text-white transition-colors cursor-pointer">Learn More about MemFlow OS →</div>
+  </footer>
+
+  <!-- htmz micro-iframe configured with entry hook -->
+  <iframe hidden name="htmz"
+    onload="setTimeout(()=>{
+      if (!contentWindow.location.hash) return;
+      const id = contentWindow.location.hash.substring(1);
+      const target = top.document.getElementById(id);
+      if (target) {
+        target.innerHTML = contentDocument.body.innerHTML;
+        // Trigger the entry animation hook
+        if (window.triggerEntryAnimation) {
+          window.triggerEntryAnimation(id);
+        }
+      }
+    }, 0)"
+    src="about:blank">
+  </iframe>
+
+  <!-- Client-side Animation Script -->
+  <script>
+    // 1. Initial Load SVG Drawing Animation
+    document.addEventListener('DOMContentLoaded', () => {
+      runArchitectureAnimation();
+    });
+
+    function runArchitectureAnimation() {
+      // Set dash offsets for outline drawing
+      const paths = document.querySelectorAll('#neural-core .circuit-path');
+      paths.forEach(p => {
+        const length = p.getTotalLength ? p.getTotalLength() : 500;
+        p.style.strokeDasharray = length;
+        p.style.strokeDashoffset = length;
+      });
+
+      // Clear core circle opacity
+      const core = document.querySelector('.glowing-core');
+      if (core) core.style.opacity = '0';
+
+      anime.timeline({
+        easing: 'easeInOutSine'
+      })
+      .add({
+        targets: '#neural-core .circuit-path',
+        strokeDashoffset: 0,
+        duration: 1200,
+        delay: anime.stagger(80)
+      })
+      .add({
+        targets: '.glowing-core',
+        opacity: [0, 1, 0.4, 1],
+        scale: [0.5, 1.2, 0.9, 1],
+        duration: 850,
+        easing: 'easeOutElastic(1, .6)'
+      });
+    }
+
+    // 2. Tab Interchange Handler with Fluid Outward Transitions (Phase 1 & 2)
+    function animateTabSwap(srcUrl, targetId, tabButton) {
+      // Toggle active states in tabs
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      tabButton.classList.add('active');
+
+      const slot = document.getElementById(targetId);
+      if (!slot) return;
+      
+      // Animate current layout out
+      anime({
+        targets: slot.firstElementChild || slot,
+        opacity: 0,
+        translateY: -30,
+        scale: 0.97,
+        duration: 350,
+        easing: 'easeInCubic',
+        complete: function() {
+          // Perform Swap
+          const iframe = document.querySelector('iframe[name="htmz"]');
+          if (iframe) {
+            iframe.src = srcUrl + '?t=' + Date.now() + '#' + targetId;
+          }
+        }
+      });
+    }
+
+    // 3. Entry Animation Hook (Phase 3)
+    window.triggerEntryAnimation = function(targetId) {
+      const slot = document.getElementById(targetId);
+      if (!slot) return;
+      
+      const newContent = slot.firstElementChild || slot;
+      
+      // Set initial states
+      newContent.style.opacity = '0';
+      newContent.style.transform = 'translateY(30px) scale(0.97)';
+      
+      // Trigger SVG specific setups
+      const hasCoreSvg = newContent.querySelector('#neural-core');
+      const hasDecoySvg = newContent.querySelector('#decoy-graph');
+      const hasPerfSvg = newContent.querySelector('#perf-charts');
+      
+      if (hasCoreSvg) {
+        runArchitectureAnimation();
+      }
+      
+      // Animate parent frame in
+      anime({
+        targets: newContent,
+        opacity: [0, 1],
+        translateY: [30, 0],
+        scale: [0.97, 1],
+        duration: 600,
+        easing: 'easeOutQuart',
+        complete: function() {
+          // Trigger special SVG animations inside the templates if they exist
+          if (hasDecoySvg) {
+            runDecoyAnimations();
+          }
+          if (hasPerfSvg) {
+            runPerformanceAnimations();
+          }
+        }
+      });
+    };
+
+    // Specialized Decoy animations
+    function runDecoyAnimations() {
+      // Animate network links
+      const links = document.querySelectorAll('#decoy-graph .decoy-link');
+      links.forEach(l => {
+        const len = l.getTotalLength ? l.getTotalLength() : 200;
+        l.style.strokeDasharray = len;
+        l.style.strokeDashoffset = len;
+      });
+
+      anime.timeline({
+        easing: 'easeOutSine'
+      })
+      .add({
+        targets: '#decoy-graph .decoy-link',
+        strokeDashoffset: 0,
+        duration: 900,
+        delay: anime.stagger(100)
+      })
+      .add({
+        targets: '#decoy-graph .decoy-node',
+        opacity: [0, 1],
+        scale: [0, 1],
+        duration: 600,
+        delay: anime.stagger(120),
+        easing: 'easeOutBack'
+      }, '-=600')
+      .add({
+        targets: '#decoy-graph .glowing-radar',
+        scale: [1, 2.5],
+        opacity: [0.6, 0],
+        duration: 1800,
+        delay: anime.stagger(300),
+        loop: true,
+        easing: 'easeOutSine'
+      }, '-=400');
+    }
+
+    // Specialized Performance animations
+    function runPerformanceAnimations() {
+      // Animate progress circle
+      const progressRing = document.querySelector('#perf-charts .progress-ring');
+      if (progressRing) {
+        const radius = progressRing.r.baseVal.value;
+        const circumference = 2 * Math.PI * radius;
+        progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
+        progressRing.style.strokeDashoffset = circumference;
+        
+        // Target offset for 99.3% progress (circumference * (1 - 0.993))
+        const targetOffset = circumference * (1 - 0.993);
+        
+        anime({
+          targets: progressRing,
+          strokeDashoffset: targetOffset,
+          duration: 1500,
+          easing: 'easeOutQuart'
+        });
+      }
+
+      // Animate bars growing
+      anime({
+        targets: '#perf-charts .chart-bar',
+        scaleY: [0, 1],
+        duration: 1000,
+        delay: anime.stagger(150),
+        easing: 'easeOutBack'
+      });
+      
+      // Animate numerical counters
+      const counters = { val: 0 };
+      anime({
+        targets: counters,
+        val: 99.3,
+        round: 10,
+        duration: 1500,
+        easing: 'easeOutQuart',
+        update: function() {
+          const numEl = document.getElementById('success-percentage');
+          if (numEl) numEl.innerHTML = counters.val.toFixed(1) + '%';
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,224 @@
+<div id="content-area" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+
+  <!-- ── Stat strip ──────────────────────────────────────────────────── -->
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Enrolled</div>
+      <div class="stat-value">5</div>
+      <div class="stat-sub">across 2 platforms</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Active</div>
+      <div class="stat-value stat-value-green">2</div>
+      <div class="stat-sub stat-sub-ok">SSH verified ✓</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Issues</div>
+      <div class="stat-value stat-value-warn">3</div>
+      <div class="stat-sub stat-sub-warn">1 reported · 1 retrying · 1 failed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Network Mix</div>
+      <div class="stat-value" style="font-size:17px;padding-top:6px;letter-spacing:0;">4 ZT · 1 LAN</div>
+      <div class="stat-sub">overlay + direct</div>
+    </div>
+  </div>
+
+  <!-- ── Toolbar ─────────────────────────────────────────────────────── -->
+  <div style="padding:16px 24px 0;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+    <span style="font-size:15px;font-weight:590;color:var(--fg);letter-spacing:-0.01em;margin-right:auto;">Endpoints</span>
+    <input type="text" class="search-input" placeholder="Search hostname, IP, OS…" oninput="filterEndpoints(this.value)">
+    <button class="btn-lin btn-lin-ghost btn-filter" onclick="filterByStatus(this)" data-status="">
+      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M1 3h12M3 7h8M5 11h4"/>
+      </svg>
+      All
+    </button>
+    <button class="btn-lin btn-lin-ghost btn-filter" onclick="filterByStatus(this)" data-status="active">Active</button>
+    <button class="btn-lin btn-lin-ghost btn-filter" onclick="filterByStatus(this)" data-status="failed">Failed</button>
+    <button class="btn-lin btn-lin-primary">+ Enroll</button>
+  </div>
+
+  <!-- ── Table ───────────────────────────────────────────────────────── -->
+  <div style="margin-top:12px;flex:1;overflow-y:auto;">
+
+    <!-- Column headers -->
+    <div class="endpoint-row header-row">
+      <span class="col-head">Hostname / FQDN</span>
+      <span class="col-head">Platform</span>
+      <span class="col-head">Status</span>
+      <span class="col-head">OS</span>
+      <span class="col-head">SSH IP:Port</span>
+      <span class="col-head">Network</span>
+      <span class="col-head">Open Ports</span>
+      <span class="col-head">Enrolled</span>
+    </div>
+
+    <!-- ── Row 1: orbVM (active / linux / ZeroTier) ── -->
+    <div class="endpoint-row" id="ep-orbvm"
+      data-hostname="orbVM"
+      data-fqdn="ubuntu-2510.local"
+      data-platform="linux"
+      data-os="Ubuntu 25.10"
+      data-os-family="debian"
+      data-kernel="6.11.0-26-generic"
+      data-network-mode="zerotier"
+      data-network-exposure="internal"
+      data-ssh-ip="10.246.231.150"
+      data-ssh-port="22"
+      data-open-ports="22, 3000, 9993"
+      data-status="active"
+      data-enrolled="2026-05-19 08:11"
+      data-verified="2026-05-19 08:13"
+      data-zt-node="56e52cfaab"
+      data-notes=""
+      onclick="showDetail(this)">
+      <div>
+        <div class="endpoint-hostname">orbVM</div>
+        <div class="endpoint-fqdn">ubuntu-2510.local</div>
+      </div>
+      <span class="platform-badge platform-linux">Linux</span>
+      <span class="badge badge-active"><span class="badge-dot"></span>Active</span>
+      <span class="endpoint-os">Ubuntu 25.10</span>
+      <span class="endpoint-ip">10.246.231.150:22</span>
+      <span class="net-tag net-zerotier">ZT</span>
+      <span class="endpoint-ports">22 · 3000 · 9993</span>
+      <span class="endpoint-ts">2026-05-19</span>
+    </div>
+
+    <!-- ── Row 2: dockur-win (active / windows / ZeroTier) ── -->
+    <div class="endpoint-row" id="ep-dockur-win"
+      data-hostname="dockur-win"
+      data-fqdn="DESKTOP-WIN10.local"
+      data-platform="windows"
+      data-os="Windows 10 Pro"
+      data-os-family="windows"
+      data-kernel="10.0.19045"
+      data-network-mode="zerotier"
+      data-network-exposure="internal"
+      data-ssh-ip="10.246.231.35"
+      data-ssh-port="22"
+      data-open-ports="22, 135, 139, 445, 3389, 5985, 5986"
+      data-status="active"
+      data-enrolled="2026-05-19 08:22"
+      data-verified="2026-05-19 08:24"
+      data-zt-node="9cce4638fc"
+      data-notes=""
+      onclick="showDetail(this)">
+      <div>
+        <div class="endpoint-hostname">dockur-win</div>
+        <div class="endpoint-fqdn">DESKTOP-WIN10.local</div>
+      </div>
+      <span class="platform-badge platform-windows">Windows</span>
+      <span class="badge badge-active"><span class="badge-dot"></span>Active</span>
+      <span class="endpoint-os">Windows 10 Pro</span>
+      <span class="endpoint-ip">10.246.231.35:22</span>
+      <span class="net-tag net-zerotier">ZT</span>
+      <span class="endpoint-ports">22 · 3389 · +5</span>
+      <span class="endpoint-ts">2026-05-19</span>
+    </div>
+
+    <!-- ── Row 3: pop-server (reported / linux / LAN) ── -->
+    <div class="endpoint-row" id="ep-pop-server"
+      data-hostname="pop-server"
+      data-fqdn="pop-server.lab.local"
+      data-platform="linux"
+      data-os="Ubuntu 22.04 LTS"
+      data-os-family="debian"
+      data-kernel="5.15.0-112-generic"
+      data-network-mode="lan"
+      data-network-exposure="public"
+      data-ssh-ip="192.168.1.50"
+      data-ssh-port="2222"
+      data-open-ports="2222, 80, 443"
+      data-status="reported"
+      data-enrolled="2026-05-27 09:44"
+      data-verified=""
+      data-zt-node=""
+      data-notes="Awaiting SSH verify — NATted host, gateway IP received"
+      onclick="showDetail(this)">
+      <div>
+        <div class="endpoint-hostname">pop-server</div>
+        <div class="endpoint-fqdn">pop-server.lab.local</div>
+      </div>
+      <span class="platform-badge platform-linux">Linux</span>
+      <span class="badge badge-reported"><span class="badge-dot"></span>Reported</span>
+      <span class="endpoint-os">Ubuntu 22.04</span>
+      <span class="endpoint-ip">192.168.1.50:2222</span>
+      <span class="net-tag net-lan">LAN</span>
+      <span class="endpoint-ports">2222 · 80 · 443</span>
+      <span class="endpoint-ts">2026-05-27</span>
+    </div>
+
+    <!-- ── Row 4: win-ws-01 (retrying / windows / ZeroTier) ── -->
+    <div class="endpoint-row" id="ep-win-ws-01"
+      data-hostname="win-ws-01"
+      data-fqdn="WIN-WS-01.corp.local"
+      data-platform="windows"
+      data-os="Windows 11 Pro"
+      data-os-family="windows"
+      data-kernel="10.0.22631"
+      data-network-mode="zerotier"
+      data-network-exposure="internal"
+      data-ssh-ip="10.246.231.87"
+      data-ssh-port="22"
+      data-open-ports="22, 3389, 5985"
+      data-status="retrying"
+      data-enrolled="2026-05-27 10:02"
+      data-verified=""
+      data-zt-node="a1b2c3d4e5"
+      data-notes="SSH verify attempt 2/3 — port 22 timeout; check Windows OpenSSH service"
+      onclick="showDetail(this)">
+      <div>
+        <div class="endpoint-hostname">win-ws-01</div>
+        <div class="endpoint-fqdn">WIN-WS-01.corp.local</div>
+      </div>
+      <span class="platform-badge platform-windows">Windows</span>
+      <span class="badge badge-retrying"><span class="badge-dot"></span>Retrying</span>
+      <span class="endpoint-os">Windows 11 Pro</span>
+      <span class="endpoint-ip">10.246.231.87:22</span>
+      <span class="net-tag net-zerotier">ZT</span>
+      <span class="endpoint-ports">22 · 3389 · 5985</span>
+      <span class="endpoint-ts">2026-05-27</span>
+    </div>
+
+    <!-- ── Row 5: contabo1 (failed / linux / ZeroTier) ── -->
+    <div class="endpoint-row" id="ep-contabo1"
+      data-hostname="contabo1"
+      data-fqdn="contabo1.vps.myhost.de"
+      data-platform="linux"
+      data-os="Debian 12 (Bookworm)"
+      data-os-family="debian"
+      data-kernel="6.1.0-23-amd64"
+      data-network-mode="zerotier"
+      data-network-exposure="public"
+      data-ssh-ip="10.246.231.200"
+      data-ssh-port="22"
+      data-open-ports="22, 9993"
+      data-status="failed"
+      data-enrolled="2026-05-26 16:30"
+      data-verified=""
+      data-zt-node="f7a9b0c12d"
+      data-notes="3 verify attempts failed — confirm sshd running and authorized_keys permissions (600)"
+      onclick="showDetail(this)">
+      <div>
+        <div class="endpoint-hostname">contabo1</div>
+        <div class="endpoint-fqdn">contabo1.vps.myhost.de</div>
+      </div>
+      <span class="platform-badge platform-linux">Linux</span>
+      <span class="badge badge-failed"><span class="badge-dot"></span>Failed</span>
+      <span class="endpoint-os">Debian 12</span>
+      <span class="endpoint-ip">10.246.231.200:22</span>
+      <span class="net-tag net-zerotier">ZT</span>
+      <span class="endpoint-ports">22 · 9993</span>
+      <span class="endpoint-ts">2026-05-26</span>
+    </div>
+
+  </div><!-- /table -->
+
+  <!-- Empty-state (hidden by default, shown when filter matches nothing) -->
+  <div id="ep-empty" style="display:none;padding:3rem 2rem;text-align:center;color:var(--fg-4);font-size:14px;">
+    No endpoints match the current filter.
+  </div>
+
+</div><!-- /content-area -->

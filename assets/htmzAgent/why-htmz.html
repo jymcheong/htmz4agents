@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>htmzFramework — Why bother?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --bg-card:   #161b22;
+      --bg-card2:  #1c2128;
+      --border:    #21262d;
+      --border-l:  #30363d;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --faint:     #484f58;
+      --blue:      #58a6ff;
+      --green:     #3fb950;
+      --orange:    #e3b341;
+      --red:       #f85149;
+      --purple:    #bc8cff;
+      --teal:      #39d353;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 48px 24px 80px;
+    }
+
+    .page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 48px; }
+
+    /* ── HERO ── */
+    .hero { text-align: center; padding: 16px 0 8px; }
+    .hero-badge {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--blue);
+      border: 1px solid rgba(88,166,255,0.3);
+      background: rgba(88,166,255,0.07);
+      border-radius: 20px;
+      padding: 4px 14px;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(28px, 5vw, 46px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      color: var(--blue);
+    }
+    .hero-sub {
+      font-size: 17px;
+      color: var(--muted);
+      max-width: 560px;
+      margin: 0 auto;
+    }
+    .bytes-pill {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--teal);
+      background: rgba(57,211,83,0.08);
+      border: 1px solid rgba(57,211,83,0.25);
+      border-radius: 6px;
+      padding: 2px 8px;
+      margin: 0 2px;
+    }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--faint);
+      margin-bottom: 16px;
+    }
+
+    /* ── THE TAX vs THE WAY ── */
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .pain-card, .way-card {
+      border-radius: 12px;
+      padding: 24px;
+      border: 1px solid var(--border);
+    }
+    .pain-card {
+      background: rgba(248,81,73,0.04);
+      border-color: rgba(248,81,73,0.15);
+    }
+    .way-card {
+      background: rgba(63,185,80,0.04);
+      border-color: rgba(63,185,80,0.15);
+    }
+    .card-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .card-icon { font-size: 20px; }
+    .card-title { font-size: 15px; font-weight: 700; }
+    .pain-card .card-title { color: var(--red); }
+    .way-card  .card-title { color: var(--green); }
+
+    .item-list { display: flex; flex-direction: column; gap: 10px; }
+    .item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13.5px;
+    }
+    .item-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .pain-card .item-dot { background: rgba(248,81,73,0.15); color: var(--red); }
+    .way-card  .item-dot { background: rgba(63,185,80,0.15);  color: var(--green); }
+    .item-text { color: var(--text); line-height: 1.5; }
+    .item-sub  { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+    /* ── QUOTE / PRINCIPLE ── */
+    .principle {
+      background: var(--bg-card);
+      border: 1px solid var(--border-l);
+      border-left: 3px solid var(--blue);
+      border-radius: 10px;
+      padding: 20px 24px;
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.7;
+    }
+    .principle strong { color: var(--blue); }
+
+    /* ── WHO BENEFITS ── */
+    .who-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .who-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .who-icon { font-size: 28px; margin-bottom: 10px; }
+    .who-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .who-desc  { font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+    .who-tag {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      border-radius: 4px;
+      padding: 2px 7px;
+      margin-top: 10px;
+    }
+    .tag-blue   { background: rgba(88,166,255,0.1);  color: var(--blue);   border: 1px solid rgba(88,166,255,0.2);  }
+    .tag-green  { background: rgba(63,185,80,0.1);   color: var(--green);  border: 1px solid rgba(63,185,80,0.2);   }
+    .tag-orange { background: rgba(227,179,65,0.1);  color: var(--orange); border: 1px solid rgba(227,179,65,0.2);  }
+    .tag-purple { background: rgba(188,140,255,0.1); color: var(--purple); border: 1px solid rgba(188,140,255,0.2); }
+
+    /* ── LLM ADVANTAGE ── */
+    .llm-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-items: center;
+    }
+    .llm-left h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--purple);
+    }
+    .llm-left p { font-size: 13.5px; color: var(--muted); line-height: 1.65; }
+    .llm-right { display: flex; flex-direction: column; gap: 10px; }
+    .llm-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--text);
+    }
+    .llm-check {
+      width: 20px;
+      height: 20px;
+      background: rgba(188,140,255,0.12);
+      border: 1px solid rgba(188,140,255,0.25);
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: var(--purple);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── PATTERNS GRID ── */
+    .patterns-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .pattern-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .pattern-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--blue);
+      margin-bottom: 6px;
+      letter-spacing: 0.03em;
+    }
+    .pattern-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+    /* ── FOOTER RULE ── */
+    .rule {
+      text-align: center;
+      padding: 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .rule em {
+      font-style: normal;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    @media (max-width: 640px) {
+      .split        { grid-template-columns: 1fr; }
+      .who-grid     { grid-template-columns: 1fr 1fr; }
+      .patterns-grid{ grid-template-columns: repeat(2, 1fr); }
+      .llm-block    { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── HERO ── -->
+  <div class="hero">
+    <div class="hero-badge">htmzFramework</div>
+    <h1>Your next demo doesn't need<br>a framework. It needs <em>166 bytes.</em></h1>
+    <p class="hero-sub">
+      A patterns library for backend and security engineers who need working UIs —
+      not another build pipeline to maintain.
+    </p>
+  </div>
+
+  <!-- ── THE PROBLEM ── -->
+  <div>
+    <div class="section-label">The problem</div>
+    <div class="split">
+      <div class="pain-card">
+        <div class="card-head">
+          <span class="card-icon">⚠</span>
+          <span class="card-title">The frontend tax</span>
+        </div>
+        <div class="item-list">
+          <div class="item">
+            <div class="item-dot">✕</div>
+            <div>
+              <div class="item-text">npm install &amp; node_modules</div>
+              <div class="item-sub">500MB before you write a line of product code</div>
+            </div>
+          </div>
+          <div class="item">
+            <div class="item-dot">✕</div>
+            <div>
+              <div class="item-text">Webpack, Vite, build pipelines</div>
+              <div class="item-sub">Config files that need config files</div>
+            </div>
+          </div>
+          <div class="item">
+            <div class="item-dot">✕</div>
+            <div>
+              <div class="item-text">useState, hooks, component trees</div>
+              <div class="item-sub">A new mental model on top of the DOM you already know</div>
+            </div>
+          </div>
+          <div class="item">
+            <div class="item-dot">✕</div>
+            <div>
+              <div class="item-text">Framework version churn</div>
+              <div class="item-sub">Best practices shift between majors; prompts go stale</div>
+            </div>
+          </div>
+          <div class="item">
+            <div class="item-dot">✕</div>
+            <div>
+              <div class="item-text">Days of setup for a 2-hour demo</div>
+              <div class="item-sub">More Stack Overflow tabs than product tabs</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="way-card">
+        <div class="card-head">
+          <span class="card-icon">✦</span>
+          <span class="card-title">The htmz way</span>
+        </div>
+        <div class="item-list">
+          <div class="item">
+            <div class="item-dot">✓</div>
+            <div>
+              <div class="item-text">One <code style="font-family:JetBrains Mono,monospace;font-size:12px;color:#58a6ff">&lt;iframe&gt;</code> tag. That's the framework.</div>
+              <div class="item-sub"><span class="bytes-pill">166 bytes</span> — no install, no build, no bundler</div>
+            </div>
+          </div>
+          <div class="item">
+            <div class="item-dot">✓</div>
+            <div>
+              <div class="item-text">Server returns HTML — you know this</div>
+              <div class="item-sub">Same mental model as CGI, PHP, Flask, Go templates</div>
+            </div>
+          </div>
+          <div class="item">
+            <div class="item-dot">✓</div>
+            <div>
+              <div class="item-text">DOM attributes are the state</div>
+              <div class="item-sub">hidden, data-*, disabled — always were, no abstraction needed</div>
+            </div>
+          </div>
+          <div class="item">
+            <div class="item-dot">✓</div>
+            <div>
+              <div class="item-text">Any backend you already run</div>
+              <div class="item-sub">Go, Python, Node, Ruby — one contract: return HTML</div>
+            </div>
+          </div>
+          <div class="item">
+            <div class="item-dot">✓</div>
+            <div>
+              <div class="item-text">Working demo in hours, not days</div>
+              <div class="item-sub">No migration cost — add fragment routes alongside existing APIs</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CARDINAL PRINCIPLE ── -->
+  <div class="principle">
+    <strong>The DOM is not a rendering target. It is the application state.</strong><br>
+    Write to it directly. Read from it directly. Everything else is overhead. — htmz, 166 bytes, proves it.
+  </div>
+
+  <!-- ── WHO BENEFITS ── -->
+  <div>
+    <div class="section-label">Who benefits most</div>
+    <div class="who-grid">
+      <div class="who-card">
+        <div class="who-icon">🔒</div>
+        <div class="who-title">Security engineers</div>
+        <div class="who-desc">Building detection dashboards, triage UIs, canary consoles. Need a demo that runs on a Go binary with zero external deps.</div>
+        <span class="who-tag tag-green">go stdlib</span>
+      </div>
+      <div class="who-card">
+        <div class="who-icon">⚙️</div>
+        <div class="who-title">Backend engineers</div>
+        <div class="who-desc">Own the API, hate the frontend tax. You already think in routes and responses — htmz maps directly onto that model.</div>
+        <span class="who-tag tag-blue">any backend</span>
+      </div>
+      <div class="who-card">
+        <div class="who-icon">🤖</div>
+        <div class="who-title">AI / agent builders</div>
+        <div class="who-desc">LLMs write HTML natively. Each fragment is a self-contained file — no component graph, no hook rules to hallucinate.</div>
+        <span class="who-tag tag-purple">llm-native</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── LLM ADVANTAGE ── -->
+  <div>
+    <div class="section-label">Why this stack + LLMs is a superpower</div>
+    <div class="llm-block">
+      <div class="llm-left">
+        <h3>LLMs were trained on the entire web.</h3>
+        <p>
+          HTML is their native language. They don't slip on fragment templating the way they slip on React hooks or framework APIs that changed last quarter.<br><br>
+          And because HTML, HTTP, and the DOM have been stable for decades — your prompts don't go stale. Write a pattern today, it works the same in 2030.
+        </p>
+      </div>
+      <div class="llm-right">
+        <div class="llm-item">
+          <div class="llm-check">✓</div>
+          <span>CRUD routes — trivial in any language</span>
+        </div>
+        <div class="llm-item">
+          <div class="llm-check">✓</div>
+          <span>HTML fragments — string interpolation with data</span>
+        </div>
+        <div class="llm-item">
+          <div class="llm-check">✓</div>
+          <span>CSS styles — trained on the whole web</span>
+        </div>
+        <div class="llm-item">
+          <div class="llm-check">✓</div>
+          <span>Each fragment is self-contained — no context beyond the file</span>
+        </div>
+        <div class="llm-item">
+          <div class="llm-check">✓</div>
+          <span>No React wrapper packages, no version lag</span>
+        </div>
+        <div class="llm-item">
+          <div class="llm-check">✓</div>
+          <span>Fixing = rewrite one file, not trace a component graph</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PATTERNS ── -->
+  <div>
+    <div class="section-label">Documented patterns — copy, adapt, ship</div>
+    <div class="patterns-grid">
+      <div class="pattern-card">
+        <div class="pattern-name">Fragment swap</div>
+        <div class="pattern-desc">Server returns HTML, client staples it into a named slot. 80% of what most UIs do.</div>
+      </div>
+      <div class="pattern-card">
+        <div class="pattern-name">Skeleton loading</div>
+        <div class="pattern-desc">Placeholder shaped like real content. Swap in live data when fetch resolves. No state variable.</div>
+      </div>
+      <div class="pattern-card">
+        <div class="pattern-name">SSE streaming</div>
+        <div class="pattern-desc">Native EventSource — token-by-token AI output, live logs, long-running jobs. 3 lines.</div>
+      </div>
+      <div class="pattern-card">
+        <div class="pattern-name">DOM as state</div>
+        <div class="pattern-desc">One hidden div with data-* attrs survives every swap. No Redux, no Context, no Zustand.</div>
+      </div>
+      <div class="pattern-card">
+        <div class="pattern-name">Tab control</div>
+        <div class="pattern-desc">active class IS the selected tab. Content is a fetched fragment. No shared variable.</div>
+      </div>
+      <div class="pattern-card">
+        <div class="pattern-name">Modal API response</div>
+        <div class="pattern-desc">POST → server returns HTML fragment → rendered inside modal. No JSON shape to agree on.</div>
+      </div>
+      <div class="pattern-card">
+        <div class="pattern-name">Backend error handling</div>
+        <div class="pattern-desc">5xx returns an error fragment. Watchdog catches unreachable server. Two-tier, no try/catch sprawl.</div>
+      </div>
+      <div class="pattern-card">
+        <div class="pattern-name">Sidebar nav</div>
+        <div class="pattern-desc">Nav click swaps the content area. Active state on the button. Full-page feel, zero router.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FOOTER RULE ── -->
+  <div class="rule">
+    <em>"If you can describe your UI as 'show this, swap that when this happens'<br>— you don't need React. You need a server that returns HTML and 166 bytes."</em>
+  </div>
+
+</div>
+</body>
+</html>

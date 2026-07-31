@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pattern 15 — React Island + htmz</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/cytoscape@3/dist/cytoscape.min.js"></script>
+  <style>
+    body { background: #0d0d0d; color: white; margin: 0; }
+    #graph-mount { background: #0d0d0d; }
+  </style>
+</head>
+<body class="h-screen overflow-hidden">
+
+  <!--
+    htmz — swap engine (166 bytes)
+    In server mode: forms target this iframe, response fragments land in named targets.
+    Without a server, htmz sits idle — plain JS handles the form area instead.
+  -->
+  <iframe name="htmz"
+    onload="setTimeout(()=>document.querySelector(contentWindow.location.hash)?.replaceWith(...contentDocument.body.childNodes))"
+    style="display:none">
+  </iframe>
+
+  <div class="flex h-screen">
+
+    <!-- ══════════════════════════════════════════
+         LEFT — htmz zone
+         In server mode: form targets htmz iframe,
+         response fragment swaps into #form-area.
+         Without server: plain JS updates DOM directly.
+    ══════════════════════════════════════════ -->
+    <div class="w-80 flex-shrink-0 border-r border-white/10 flex flex-col p-6 gap-5">
+
+      <div>
+        <p class="text-[10px] font-mono text-white/30 uppercase tracking-widest mb-1">Pattern 15</p>
+        <h1 class="text-base font-semibold tracking-tight">React Island ↔ htmz</h1>
+        <p class="text-xs text-white/40 mt-1">
+          Bridge: <code class="text-violet-400 font-mono">CustomEvent</code>
+        </p>
+      </div>
+
+      <hr class="border-white/10">
+
+      <!--
+        htmz swap target — #form-area
+        Server mode: <form action="/generate#form-area" method="POST" target="htmz">
+        Response fragment replaces everything inside this div.
+      -->
+      <div id="form-area" class="flex flex-col gap-4">
+
+        <!-- Generate button -->
+        <button onclick="generateNode()"
+          class="w-full py-2.5 px-4 bg-violet-600 hover:bg-violet-500 active:bg-violet-700
+                 rounded-lg text-sm font-medium transition-colors">
+          Generate Random Node
+        </button>
+
+        <!-- Preview — hidden until generate is clicked -->
+        <div id="preview" style="display:none"
+          class="border border-white/10 rounded-lg p-4 bg-white/5 flex flex-col gap-4">
+
+          <div class="flex items-center gap-3">
+            <div id="preview-dot" class="w-3 h-3 rounded-full flex-shrink-0 ring-2 ring-white/10"></div>
+            <div>
+              <p class="text-sm font-mono font-medium" id="preview-label">—</p>
+              <p class="text-xs text-white/40" id="preview-type">—</p>
+            </div>
+          </div>
+
+          <!--
+            "Add to Graph" fires the CustomEvent — THE BRIDGE.
+            In server mode this button would be part of the server-returned fragment,
+            keeping node data server-side until confirmed.
+          -->
+          <button id="add-btn" onclick="addToGraph()"
+            class="w-full py-2 px-4 bg-white text-black rounded-lg text-sm font-medium
+                   hover:bg-white/90 active:bg-white/80 transition-colors">
+            Add to Graph ↗
+          </button>
+
+        </div>
+
+      </div>
+
+      <!-- Bridge diagram -->
+      <div class="rounded-lg border border-white/10 bg-white/5 p-4 font-mono text-[11px] space-y-1 text-white/40">
+        <p class="text-white/60 text-[10px] uppercase tracking-widest font-sans mb-2">Data flow</p>
+        <p>onclick</p>
+        <p class="pl-3">→ <span class="text-violet-400">CustomEvent</span> <span class="text-white/25">'graph:add-node'</span></p>
+        <p class="pl-3">→ React <span class="text-violet-400">useEffect</span> → graph</p>
+        <hr class="border-white/10 my-1">
+        <p>node tap → context menu</p>
+        <p class="pl-3">→ delete → <span class="text-rose-400">CustomEvent</span> <span class="text-white/25">'graph:node-deleted'</span></p>
+        <p class="pl-3">→ htmz <span class="text-rose-400">addEventListener</span> → toast</p>
+        <hr class="border-white/10 my-1">
+        <p class="text-white/25">htmz never touches #graph-mount</p>
+      </div>
+
+      <!--
+        htmz toast — receives graph:node-deleted CustomEvent from React island.
+        React → htmz direction. Same bus, opposite direction.
+      -->
+      <div id="htmz-toast"
+        style="opacity:0; transform:translateY(6px); transition: opacity 0.25s, transform 0.25s; display:none"
+        class="rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-2.5
+               text-xs font-mono text-rose-300 text-center">
+      </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         RIGHT — React Island
+         htmz has zero knowledge of this div.
+         React mounts here once and owns it forever.
+    ══════════════════════════════════════════ -->
+    <div id="graph-mount" class="flex-1 relative"></div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       Plain JS — form logic
+       No React, no htmz, no build step.
+       In server mode this logic lives on the server;
+       the client just submits a form.
+  ══════════════════════════════════════════ -->
+  <script>
+    const NODE_TYPES  = ['Router', 'Switch', 'Server', 'Firewall', 'Endpoint', 'Database', 'Load Balancer', 'Gateway']
+    const PREFIXES    = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Theta', 'Sigma', 'Omega', 'Kappa', 'Lambda', 'Mu']
+    const COLORS      = ['#7c3aed', '#db2777', '#0891b2', '#d97706', '#16a34a', '#dc2626', '#2563eb', '#9333ea']
+
+    let currentNode = null
+    let counter = 0
+
+    function generateNode() {
+      const name = PREFIXES[Math.floor(Math.random() * PREFIXES.length)]
+                 + '-' + String(++counter).padStart(2, '0')
+      currentNode = {
+        id:    'n-' + Date.now(),
+        label: name,
+        type:  NODE_TYPES[Math.floor(Math.random() * NODE_TYPES.length)],
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      }
+      document.getElementById('preview-label').textContent = currentNode.label
+      document.getElementById('preview-type').textContent  = currentNode.type
+      document.getElementById('preview-dot').style.backgroundColor = currentNode.color
+      document.getElementById('preview').style.display = 'flex'
+    }
+
+    function addToGraph() {
+      if (!currentNode) return
+      // ── THE BRIDGE (htmz → React) ────────────────────
+      window.dispatchEvent(new CustomEvent('graph:add-node', { detail: { ...currentNode } }))
+      // ────────────────────────────────────────────────
+      // Confirm in-place — eye never leaves the button
+      const btn = document.getElementById('add-btn')
+      btn.textContent = '✓ Added'
+      btn.className = 'w-full py-2 px-4 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-lg text-sm font-medium transition-colors'
+      btn.disabled = true
+      currentNode = null
+      setTimeout(() => {
+        document.getElementById('preview').style.display = 'none'
+        btn.textContent = 'Add to Graph ↗'
+        btn.className = 'w-full py-2 px-4 bg-white text-black rounded-lg text-sm font-medium hover:bg-white/90 active:bg-white/80 transition-colors'
+        btn.disabled = false
+      }, 1200)
+    }
+
+    // ── THE BRIDGE (React → htmz) ──────────────────────
+    // React island fires graph:node-deleted; we show a toast here in htmz world.
+    // React has no knowledge of this listener — it just fires and forgets.
+    window.addEventListener('graph:node-deleted', (e) => {
+      const el = document.getElementById('htmz-toast')
+      el.textContent = `✕  ${e.detail.label} · ${e.detail.type} removed`
+      el.style.display = 'block'
+      el.style.opacity = '1'
+      el.style.transform = 'translateY(0)'
+      clearTimeout(el._t)
+      el._t = setTimeout(() => {
+        el.style.opacity = '0'
+        el.style.transform = 'translateY(6px)'
+        setTimeout(() => { el.style.display = 'none' }, 260)
+      }, 2500)
+    })
+    // ──────────────────────────────────────────────────
+  </script>
+
+  <!-- ══════════════════════════════════════════
+       React Island — JSX via Babel standalone
+       Mounts into #graph-mount.
+       Listens for CustomEvent from htmz world.
+       htmz never touches anything inside this component.
+  ══════════════════════════════════════════ -->
+  <script type="text/babel">
+    const { useRef, useEffect, useState } = React
+
+    // Seed graph — not empty on first load
+    const SEEDS = {
+      nodes: [
+        { id: 's1', label: 'Core-01',  type: 'Router',   color: '#7c3aed' },
+        { id: 's2', label: 'FW-01',    type: 'Firewall',  color: '#db2777' },
+        { id: 's3', label: 'DB-01',    type: 'Database',  color: '#0891b2' },
+      ],
+      edges: [
+        { id: 'se1', source: 's1', target: 's2' },
+        { id: 'se2', source: 's1', target: 's3' },
+      ]
+    }
+
+    function GraphIsland() {
+      const mountRef    = useRef(null)   // cytoscape container DOM node
+      const cyRef       = useRef(null)   // cytoscape instance
+      const rafRef      = useRef(null)   // requestAnimationFrame id
+      const floatRef    = useRef([])     // [{node, baseX, baseY, amp, freq, phase}]
+      const [toast, setToast]         = useState(null)
+      const [nodeCount, setNodeCount] = useState(SEEDS.nodes.length)
+      const [menu, setMenu]           = useState(null)  // {id, label, type, x, y}
+
+      // ── Float helpers ────────────────────────────────
+      // Pure RAF sine wave — no cytoscape animation queue, no conflicts with layout
+      const stopFloating = () => {
+        if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null }
+      }
+
+      const startFloating = (cy) => {
+        stopFloating()
+        // Snapshot current positions as rest positions
+        floatRef.current = cy.nodes().map(node => ({
+          node,
+          baseX: node.position('x'),
+          baseY: node.position('y'),
+          amp:   3 + Math.random() * 4,          // px vertical travel
+          freq:  0.00035 + Math.random() * 0.0002,
+          phase: Math.random() * Math.PI * 2,
+        }))
+        const tick = (t) => {
+          floatRef.current.forEach(({ node, baseX, baseY, amp, freq, phase }) => {
+            node.position({
+              x: baseX + Math.sin(t * freq * 0.6 + phase + 1) * amp * 0.4,
+              y: baseY + Math.sin(t * freq       + phase)     * amp,
+            })
+          })
+          rafRef.current = requestAnimationFrame(tick)
+        }
+        rafRef.current = requestAnimationFrame(tick)
+      }
+
+      // ── Init cytoscape once ──────────────────────────
+      useEffect(() => {
+        cyRef.current = cytoscape({
+          container: mountRef.current,
+          elements: [
+            ...SEEDS.nodes.map(n => ({
+              group: 'nodes',
+              data:  { id: n.id, label: n.label, type: n.type },
+              style: { 'background-color': n.color },
+            })),
+            ...SEEDS.edges.map(e => ({
+              group: 'edges',
+              data:  e,
+            })),
+          ],
+          style: [
+            {
+              selector: 'node',
+              style: {
+                'label':         'data(label)',
+                'color':         'rgba(255,255,255,0.7)',
+                'font-size':     '10px',
+                'font-family':   'monospace',
+                'text-valign':   'bottom',
+                'text-margin-y': '7px',
+                'width':         '26px',
+                'height':        '26px',
+                'border-width':  '2px',
+                'border-color':  'rgba(255,255,255,0.15)',
+                'transition-property':       'width height border-color',
+                'transition-duration':       '200ms',
+              }
+            },
+            {
+              selector: 'node:selected',
+              style: {
+                'border-color': '#ffffff',
+                'border-width': '2px',
+                'width':  '32px',
+                'height': '32px',
+              }
+            },
+            {
+              selector: 'edge',
+              style: {
+                'line-color':   'rgba(255,255,255,0.12)',
+                'width':        1.5,
+                'curve-style':  'bezier',
+              }
+            },
+          ],
+          layout: { name: 'preset' },
+          userZoomingEnabled: true,
+          userPanningEnabled: true,
+          minZoom: 0.3,
+          maxZoom: 3,
+        })
+
+        // Run layout → fit → start floating
+        const initLayout = cyRef.current.layout({ name: 'cose', animate: false, padding: 80 })
+        initLayout.on('layoutstop', () => {
+          setTimeout(() => {
+            cyRef.current.resize()
+            cyRef.current.fit(cyRef.current.elements(), 80)
+            startFloating(cyRef.current)
+          }, 50)
+        })
+        initLayout.run()
+
+        return () => { stopFloating(); cyRef.current?.destroy() }
+      }, [])
+
+      // ── CustomEvent listener — THE BRIDGE ───────────
+      // This is the only coupling point between htmz world and the React island.
+      // Replace window.addEventListener with any pub/sub; the island doesn't care.
+      useEffect(() => {
+        const handler = (e) => {
+          const { id, label, type, color } = e.detail
+          const cy = cyRef.current
+          if (!cy) return
+
+          // Add node to cytoscape
+          cy.add({
+            group: 'nodes',
+            data:  { id, label, type },
+            style: { 'background-color': color },
+          })
+
+          // Connect to 2 random existing nodes — avoids tree topology, survives deletions
+          const others = cy.nodes().filter(n => n.id() !== id).toArray()
+          const targets = others.sort(() => Math.random() - 0.5).slice(0, Math.min(2, others.length))
+          targets.forEach(target => {
+            cy.add({ group: 'edges', data: { id: `e-${id}-${target.id()}`, source: id, target: target.id() } })
+          })
+
+          // Stop float, re-run layout, restart float after settle
+          stopFloating()
+          const addLayout = cy.layout({
+            name:              'cose',
+            animate:           true,
+            animationDuration: 500,
+            padding:           60,
+            randomize:         false,
+          })
+          addLayout.on('layoutstop', () => setTimeout(() => startFloating(cy), 50))
+          addLayout.run()
+
+          setNodeCount(cy.nodes().length)
+        }
+
+        window.addEventListener('graph:add-node', handler)
+        return () => window.removeEventListener('graph:add-node', handler)
+      }, [])
+
+      // ── Node tap → context menu ──────────────────────
+      useEffect(() => {
+        const cy = cyRef.current
+        if (!cy) return
+        const onNodeTap = (e) => {
+          const node = e.target
+          const pos  = node.renderedPosition()
+          setMenu({ id: node.id(), label: node.data('label'), type: node.data('type'), x: pos.x, y: pos.y })
+        }
+        const onCanvasTap = (e) => { if (e.target === cy) setMenu(null) }
+        cy.on('tap', 'node', onNodeTap)
+        cy.on('tap', onCanvasTap)
+        return () => { cy.off('tap', 'node', onNodeTap); cy.off('tap', onCanvasTap) }
+      }, [])
+
+      // ── Repair connectivity — enforces graph invariant: always connected ────
+      const repairConnectivity = (cy) => {
+        const nodes = cy.nodes()
+        if (nodes.length <= 1) return
+        const visited = new Set()
+        const components = []
+        nodes.forEach(start => {
+          if (visited.has(start.id())) return
+          const comp = []
+          const q = [start]
+          visited.add(start.id())
+          while (q.length) {
+            const cur = q.shift()
+            comp.push(cur)
+            cur.neighborhood('node').forEach(nb => {
+              if (!visited.has(nb.id())) { visited.add(nb.id()); q.push(nb) }
+            })
+          }
+          components.push(comp)
+        })
+        if (components.length <= 1) return
+        const main = components[0]
+        for (let i = 1; i < components.length; i++) {
+          const orphan = components[i][0]
+          const anchor = main[Math.floor(Math.random() * main.length)]
+          cy.add({ group: 'edges', data: { id: `e-repair-${orphan.id()}-${anchor.id()}`, source: orphan.id(), target: anchor.id() } })
+        }
+      }
+
+      // ── Delete node ──────────────────────────────────
+      const deleteNode = (id) => {
+        const cy    = cyRef.current
+        const node  = cy.getElementById(id)
+        const label = node.data('label')
+        const type  = node.data('type')
+        stopFloating()
+        cy.remove(node)  // removes node + its edges
+        repairConnectivity(cy)
+        setMenu(null)
+        setNodeCount(cy.nodes().length)
+        if (cy.nodes().length > 0) {
+          cy.layout({ name: 'cose', animate: false, padding: 60, randomize: false }).run()
+          cy.fit(cy.elements(), 60)
+        }
+        startFloating(cy)
+        // ── THE BRIDGE (React → htmz) ──────────────────
+        window.dispatchEvent(new CustomEvent('graph:node-deleted', { detail: { id, label, type } }))
+      }
+
+      return (
+        <div className="relative w-full h-full">
+
+          {/* cytoscape mounts here — React owns the ref, htmz never touches it */}
+          <div ref={mountRef} className="w-full h-full" />
+
+          {/* HUD */}
+          <div className="absolute top-4 left-4 flex items-center gap-3">
+            <span className="text-[10px] font-mono text-white/25 uppercase tracking-widest">
+              React Island · cytoscape.js
+            </span>
+            <span className="text-[10px] font-mono text-white/40 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">
+              {nodeCount} nodes
+            </span>
+          </div>
+
+          {/* Context menu — shown on node tap */}
+          {menu && (
+            <div style={{ left: menu.x + 12, top: menu.y - 12 }}
+              className="absolute z-10 bg-[#1a1a1a] border border-white/15 rounded-lg
+                         shadow-xl overflow-hidden min-w-[140px]">
+              <div className="px-3 py-2 border-b border-white/10">
+                <p className="text-xs font-mono font-medium text-white/80">{menu.label}</p>
+                <p className="text-[10px] text-white/35">{menu.type}</p>
+              </div>
+              <button
+                onClick={() => deleteNode(menu.id)}
+                className="w-full text-left px-3 py-2 text-xs text-rose-400
+                           hover:bg-rose-500/15 transition-colors font-mono">
+                ✕ Delete node
+              </button>
+            </div>
+          )}
+
+          {/* Toast — lives entirely inside React island */}
+          <div className={`absolute bottom-6 left-1/2 -translate-x-1/2
+            bg-white/10 backdrop-blur-sm border border-white/20 text-white
+            text-xs font-mono px-4 py-2 rounded-full pointer-events-none
+            transition-all duration-300 ${toast ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
+            ✓ {toast}
+          </div>
+
+        </div>
+      )
+    }
+
+    ReactDOM.createRoot(document.getElementById('graph-mount')).render(<GraphIsland />)
+  </script>
+
+</body>
+</html>

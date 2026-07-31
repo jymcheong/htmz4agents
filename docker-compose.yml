@@ -1,0 +1,126 @@
+services:
+
+  # ── Tier 1: Static examples (fully offline) ─────────────────────────────
+  static:
+    image: nginx:alpine
+    volumes:
+      - ./assets/htmzAgent:/usr/share/nginx/html:ro
+    ports:
+      - "8080:80"
+
+  # ── Tier 3: Node.js backends ─────────────────────────────────────────────
+  inline-editing:
+    image: node:18-alpine
+    working_dir: /app
+    volumes:
+      - ./assets/htmzAgent/examples/inline-editing:/app
+    command: sh -c "npm install --prefer-offline 2>/dev/null || npm install && node server.js"
+    ports:
+      - "8810:8810"
+
+  card-accordion:
+    image: node:18-alpine
+    working_dir: /app
+    volumes:
+      - ./assets/htmzAgent/examples/card-accordion:/app
+    command: sh -c "npm install && node server.js"
+    ports:
+      - "8811:8743"
+
+  load-more:
+    image: node:18-alpine
+    working_dir: /app
+    volumes:
+      - ./assets/htmzAgent/examples/load-more:/app
+    command: sh -c "npm install && node server.js"
+    ports:
+      - "8812:8830"
+
+  file-upload:
+    image: node:18-alpine
+    working_dir: /app
+    volumes:
+      - ./assets/htmzAgent/examples/file-upload:/app
+    command: sh -c "npm install && node server.js"
+    ports:
+      - "8813:8793"
+
+  server-hydrated:
+    image: node:18-alpine
+    working_dir: /app
+    volumes:
+      - ./assets/htmzAgent/examples/server-hydrated:/app
+    command: sh -c "npm install --prefer-offline 2>/dev/null || npm install && node server.js"
+    ports:
+      - "8814:8840"
+
+  optimistic-update:
+    image: node:18-alpine
+    working_dir: /app
+    volumes:
+      - ./assets/htmzAgent/examples/optimistic-update:/app
+    command: node server.js
+    ports:
+      - "8815:8795"
+
+  # ── Tier 4: Go backends ──────────────────────────────────────────────────
+  basecoat:
+    image: golang:1.23-alpine
+    working_dir: /app
+    volumes:
+      - ./assets/htmzAgent/examples/basecoat:/app
+    command: go run .
+    ports:
+      - "8820:8770"
+
+  sse:
+    image: golang:1.23-alpine
+    working_dir: /app
+    volumes:
+      - ./assets/htmzAgent/examples/sse:/app
+    command: go run .
+    ports:
+      - "8821:8750"
+
+  loquix-chat:
+    image: golang:1.23-alpine
+    working_dir: /app
+    volumes:
+      - ./assets/htmzAgent/examples/loquix-chat:/app
+    command: go run .
+    ports:
+      - "8822:8760"
+
+  # ── PostgREST POC ────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: htmz
+      POSTGRES_USER: htmz
+      POSTGRES_PASSWORD: htmz
+    volumes:
+      - ./assets/postgrest-htmz-passkey-poc/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U htmz"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  postgrest:
+    image: postgrest/postgrest:v12.2.0
+    environment:
+      PGRST_DB_URI: postgres://htmz:htmz@postgres:5432/htmz
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: htmz
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+
+  poc-frontend:
+    image: nginx:alpine
+    volumes:
+      - ./assets/postgrest-htmz-passkey-poc:/usr/share/nginx/html:ro
+    ports:
+      - "8831:80"

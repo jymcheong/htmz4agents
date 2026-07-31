@@ -1,0 +1,99 @@
+<div id="host-002-card" class="host-card critical">
+  <div class="card-body">
+    <div class="top-row">
+      <div>
+        <div class="hostname">ENDPOINT-002</div>
+        <div class="host-sub">Internal · Ubuntu 20.04 · DevOps zone</div>
+      </div>
+      <div class="badge-group">
+        <span class="badge-critical">Critical</span>
+        <span class="badge-warning">Patch This Week</span>
+      </div>
+    </div>
+
+    <div class="verdict-block">
+      <p>This build server has direct write access to production deployment pipelines. A known lateral movement exploit is actively circulating — a compromised neighbour in the same subnet is one hop away. Patch now before the path closes.</p>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-pill"><span class="stat-label">CVSS</span><div class="stat-divider"></div><span class="stat-value">9.1</span></div>
+      <div class="stat-pill"><span class="stat-label">EPSS</span><div class="stat-divider"></div><span class="stat-value">0.87</span></div>
+      <div class="stat-pill"><span class="stat-label">KEV</span><div class="stat-divider"></div><span class="stat-value">✓ Yes</span></div>
+      <div class="stat-pill"><span class="stat-label">Exposure</span><div class="stat-divider"></div><span class="stat-value ok">Internal</span></div>
+      <div class="stat-pill"><span class="stat-label">CVEs</span><div class="stat-divider"></div><span class="stat-value">4</span></div>
+    </div>
+  </div>
+
+  <button class="accordion-toggle" onclick="toggleAccordion(this)" aria-expanded="false">
+    <span>See detail</span>
+    <span class="accordion-arrow">▾</span>
+  </button>
+
+  <div class="detail-panel">
+    <div class="detail-inner">
+
+      <div class="detail-section">
+        <div class="detail-heading">AI Reasoning</div>
+        <p>Internal exposure reduces urgency slightly but mission impact elevates this to P1. ENDPOINT-002 has write access to CI/CD pipelines that deploy directly to production. CVE-2025-1102 (sudo heap overflow) is KEV-listed with a public PoC circulating since 2025-02-01. A compromised neighbour (ENDPOINT-019, same /24 subnet) was flagged in the previous scan cycle — lateral movement requires no privilege escalation at the network layer.</p>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-heading">Active CVEs</div>
+        <div class="cve-item">
+          <div class="cve-id">CVE-2025-1102</div>
+          <div class="cve-meta">
+            <div class="cve-desc">sudo heap overflow — local privilege escalation to root</div>
+            <div class="cve-tags">
+              <span class="cve-tag exploited">Exploited in wild</span>
+              <span class="cve-tag">KEV</span><span class="cve-tag">LPE</span>
+            </div>
+          </div>
+          <div class="cve-score score-critical">9.1</div>
+        </div>
+        <div class="cve-item">
+          <div class="cve-id">CVE-2024-6741</div>
+          <div class="cve-meta">
+            <div class="cve-desc">OpenSSH pre-auth memory corruption via malformed packet</div>
+            <div class="cve-tags"><span class="cve-tag">Public PoC</span><span class="cve-tag">RCE</span></div>
+          </div>
+          <div class="cve-score score-high">7.8</div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-heading">Recommended Actions</div>
+        <ol class="action-steps">
+          <li>Upgrade sudo to 1.9.15p2 or later — patches CVE-2025-1102</li>
+          <li>Patch OpenSSH to 9.7p1 — closes CVE-2024-6741</li>
+          <li>Restrict CI/CD pipeline write permissions to named service accounts only</li>
+          <li>Investigate ENDPOINT-019 compromise status before patch window</li>
+        </ol>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-heading">Asset Context</div>
+        <div class="context-grid">
+          <span class="ctx-label">Owner</span><span class="ctx-value">devops-team@company.com</span>
+          <span class="ctx-label">Change Window</span><span class="ctx-value">Saturday 00:00–04:00 SGT</span>
+          <span class="ctx-label">Mission Impact</span><span class="ctx-value">Critical — CI/CD pipeline access</span>
+          <span class="ctx-label">Last Scanned</span><span class="ctx-value">2026-04-30 05:21</span>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-heading">Actions</div>
+        <div class="action-btn-row">
+          <button class="action-btn btn-notify"
+                  onclick="callAPI('inform-owner', 'ENDPOINT-002', 'devops-team@company.com')">
+            ✉ Inform Owner
+          </button>
+          <button class="action-btn btn-rescan"
+                  onclick="callAPI('rescan', 'ENDPOINT-002', null)">
+            ↺ Rescan Asset
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

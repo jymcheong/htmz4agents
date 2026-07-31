@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alfred</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/@loquix/core/src/tokens/variables.css">
+  <script src="https://unpkg.com/@loquix/core/cdn/loquix.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Loquix token overrides (composer only) ──────────────────────── */
+    :root {
+      --loquix-font-family: 'Inter', sans-serif;
+      --loquix-surface-bg: #1c1c1c;
+      --loquix-surface-raised: #2a2a2a;
+      --loquix-border-color: #383838;
+      --loquix-text-primary: #ececec;
+      --loquix-text-muted: #6b6b6b;
+      --loquix-ai-color: #d97757;
+      --loquix-border-radius: 20px;
+      --loquix-message-font-size: 15px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #1c1c1c;
+      color: #ececec;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── header ──────────────────────────────────────────────────────── */
+    header {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 24px;
+      border-bottom: 1px solid #272727;
+    }
+
+    .wordmark {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #ececec;
+      letter-spacing: -0.2px;
+    }
+
+    .wordmark-icon {
+      width: 26px;
+      height: 26px;
+      background: linear-gradient(135deg, #d97757, #c4623e);
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .model-pill {
+      font-size: 11px;
+      color: #6b6b6b;
+      background: #242424;
+      border: 1px solid #303030;
+      border-radius: 20px;
+      padding: 4px 10px;
+    }
+
+    /* ── scroll area ─────────────────────────────────────────────────── */
+    #scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      scrollbar-width: thin;
+      scrollbar-color: #2a2a2a transparent;
+    }
+    #scroll-area::-webkit-scrollbar { width: 4px; }
+    #scroll-area::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
+
+    #messages {
+      width: 100%;
+      max-width: 720px;
+      padding: 32px 24px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ── welcome state ───────────────────────────────────────────────── */
+    #welcome {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding-bottom: 60px;
+      text-align: center;
+    }
+
+    #welcome h1 {
+      font-size: 24px;
+      font-weight: 500;
+      color: #d0d0d0;
+      letter-spacing: -0.4px;
+    }
+
+    #welcome p {
+      font-size: 14px;
+      color: #555;
+    }
+
+    /* ── message rows ────────────────────────────────────────────────── */
+    .msg-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .msg-row.user { flex-direction: row-reverse; }
+
+    /* avatar */
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+      align-self: flex-end;
+    }
+
+    .avatar.claude { background: linear-gradient(135deg, #d97757, #c4623e); }
+    .avatar.user   { background: #3a3a3a; color: #a0a0a0; font-size: 12px; }
+
+    /* speech bubble */
+    .bubble {
+      max-width: 78%;
+      padding: 11px 16px;
+      font-size: 15px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-word;
+      position: relative;
+    }
+
+    .bubble.user {
+      background: #0f2a47;
+      color: #7dd3fc;
+      border-radius: 20px 20px 4px 20px;
+      border: 1px solid #1e3a5f;
+    }
+
+    .bubble.assistant {
+      background: #242424;
+      color: #e0e0e0;
+      border-radius: 20px 20px 20px 4px;
+      border: 1px solid #2e2e2e;
+    }
+
+    .bubble.assistant.error {
+      color: #f87171;
+      border-color: #3f1f1f;
+      background: #1f1414;
+    }
+
+    /* streaming cursor */
+    .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      background: #d97757;
+      border-radius: 1px;
+      vertical-align: text-bottom;
+      margin-left: 2px;
+      animation: blink 0.9s step-end infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0; }
+    }
+
+    /* ── typing spinner (3 dots) ─────────────────────────────────────── */
+    .typing-bubble {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 14px 18px;
+      background: #242424;
+      border: 1px solid #2e2e2e;
+      border-radius: 20px 20px 20px 4px;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      background: #555;
+      border-radius: 50%;
+      animation: bounce 1.3s ease-in-out infinite;
+    }
+    .dot:nth-child(2) { animation-delay: 0.18s; }
+    .dot:nth-child(3) { animation-delay: 0.36s; }
+
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0);    background: #555; }
+      30%            { transform: translateY(-7px); background: #d97757; }
+    }
+
+    /* ── composer area ───────────────────────────────────────────────── */
+    .composer-area {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 24px 20px;
+    }
+
+    /* suggestions row — htmz-owned */
+    .suggestions-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding: 10px 0 12px;
+      width: 100%;
+      max-width: 720px;
+    }
+
+    #load-suggestions {
+      background: none;
+      border: none;
+      color: #444;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+      padding: 0;
+      transition: color 0.15s;
+    }
+    #load-suggestions:hover { color: #888; }
+
+    #suggestions-panel { display: contents; }
+
+    .chip {
+      background: #242424;
+      color: #888;
+      border: 1px solid #303030;
+      border-radius: 20px;
+      padding: 5px 13px;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .chip:hover {
+      background: #2a2a2a;
+      color: #d0d0d0;
+      border-color: #444;
+    }
+
+    loquix-chat-composer {
+      width: 100%;
+      max-width: 720px;
+    }
+
+    /* deep-style composer via ::part() */
+    loquix-chat-composer::part(root) {
+      background: #242424;
+      border: 1px solid #383838;
+      border-radius: 20px;
+      padding: 4px 4px 4px 16px;
+    }
+
+    loquix-chat-composer::part(root):focus-within {
+      border-color: #4a4a4a;
+    }
+
+    loquix-chat-composer::part(input) {
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      color: #ececec;
+      background: transparent;
+      caret-color: #d97757;
+    }
+
+    loquix-chat-composer::part(submit-button) {
+      background: #d97757;
+      border-radius: 14px;
+      width: 34px;
+      height: 34px;
+    }
+
+    .footer-note {
+      font-size: 11px;
+      color: #333;
+      text-align: center;
+      padding-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark">
+    <div class="wordmark-icon">A</div>
+    Alfred
+  </div>
+  <div class="model-pill">claude-3-5-sonnet</div>
+</header>
+
+<div id="scroll-area">
+
+  <!-- welcome state -->
+  <div id="welcome">
+    <h1>How can I help you today?</h1>
+    <p>Ask Alfred anything — or load a suggestion below.</p>
+  </div>
+
+  <!-- message list (hidden until first message) -->
+  <div id="messages" style="display:none"></div>
+
+</div>
+
+<div class="composer-area">
+  <div class="suggestions-row">
+    <form method="GET" action="/suggestions#suggestions-panel" target="htmz" style="display:contents">
+      <button type="submit" id="load-suggestions">+ suggestions</button>
+    </form>
+    <div id="suggestions-panel"></div>
+  </div>
+
+  <loquix-chat-composer id="composer" placeholder="Message Claude…"></loquix-chat-composer>
+  <p class="footer-note">Alfred can make mistakes. Consider checking important information.</p>
+</div>
+
+<!-- htmz transport -->
+<iframe hidden name="htmz" id="htmz-frame"></iframe>
+
+<script>
+  const messages   = document.getElementById('messages');
+  const welcome    = document.getElementById('welcome');
+  const scrollArea = document.getElementById('scroll-area');
+  const composer   = document.getElementById('composer');
+  const htmzFrame  = document.getElementById('htmz-frame');
+
+  function scrollBottom() {
+    scrollArea.scrollTop = scrollArea.scrollHeight;
+  }
+
+  // ── loquix-submit ─────────────────────────────────────────────────
+  document.addEventListener('loquix-submit', e => {
+    const content = e.detail?.content;
+    if (!content?.trim()) return;
+
+    // first message — swap welcome → messages
+    if (welcome.style.display !== 'none') {
+      welcome.style.display = 'none';
+      messages.style.display = '';
+    }
+
+    // user bubble
+    const userRow = document.createElement('div');
+    userRow.className = 'msg-row user';
+    userRow.innerHTML = `
+      <div class="avatar user">U</div>
+      <div class="bubble user">${escHtml(content)}</div>`;
+    messages.appendChild(userRow);
+    scrollBottom();
+
+    // typing spinner row
+    const spinnerRow = document.createElement('div');
+    spinnerRow.className = 'msg-row';
+    spinnerRow.innerHTML = `
+      <div class="avatar claude">A</div>
+      <div class="typing-bubble">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>`;
+    messages.appendChild(spinnerRow);
+    scrollBottom();
+
+    composer.setAttribute('streaming', '');
+
+    let firstChunk = true;
+    let bubbleEl   = null;
+    let cursorEl   = null;
+    let displayed  = '';
+    let sseEnded   = false;
+    let rafId      = null;
+    const queue    = [];
+
+    // RAF drain — 4 chars/frame ≈ 240 chars/sec, smooth at 60fps
+    function drain() {
+      if (queue.length === 0) {
+        if (sseEnded) finalize();
+        else rafId = null;
+        return;
+      }
+      const batch = queue.splice(0, 4).join('');
+      displayed += batch;
+      bubbleEl.textContent = displayed;
+      cursorEl && bubbleEl.appendChild(cursorEl);
+      scrollBottom();
+      rafId = requestAnimationFrame(drain);
+    }
+
+    const src = new EventSource(`/stream?prompt=${encodeURIComponent(content)}`);
+
+    src.onmessage = (ev) => {
+      if (ev.data === '[DONE]') {
+        src.close();
+        sseEnded = true;
+        if (!rafId && queue.length === 0) finalize();
+        return;
+      }
+      if (ev.data.startsWith('[ERROR]')) {
+        src.close();
+        swapSpinnerToBubble(true);
+        bubbleEl.textContent = ev.data.slice(8).trimStart();
+        finalize();
+        return;
+      }
+      if (firstChunk) {
+        firstChunk = false;
+        swapSpinnerToBubble(false);
+      }
+      for (const ch of ev.data.replace(/\\n/g, '\n')) queue.push(ch);
+      if (!rafId) rafId = requestAnimationFrame(drain);
+    };
+
+    src.onerror = () => {
+      src.close();
+      sseEnded = true;
+      if (firstChunk) { swapSpinnerToBubble(false); bubbleEl.textContent = 'connection error'; }
+      if (!rafId) finalize();
+    };
+
+    function swapSpinnerToBubble(isError) {
+      const assistantRow = document.createElement('div');
+      assistantRow.className = 'msg-row';
+      bubbleEl = document.createElement('div');
+      bubbleEl.className = 'bubble assistant' + (isError ? ' error' : '');
+      cursorEl = document.createElement('span');
+      cursorEl.className = 'cursor';
+      bubbleEl.appendChild(cursorEl);
+      assistantRow.innerHTML = `<div class="avatar claude">C</div>`;
+      assistantRow.appendChild(bubbleEl);
+      spinnerRow.replaceWith(assistantRow);
+      scrollBottom();
+    }
+
+    function finalize() {
+      cancelAnimationFrame(rafId);
+      cursorEl?.remove();
+      composer.removeAttribute('streaming');
+      scrollBottom();
+    }
+  });
+
+  // ── htmz onload ───────────────────────────────────────────────────
+  htmzFrame.onload = function () {
+    setTimeout(() => {
+      try {
+        const hash = htmzFrame.contentWindow.location.hash;
+        if (!hash) return;
+        const target = document.querySelector(hash);
+        if (target) target.replaceWith(...htmzFrame.contentDocument.body.childNodes);
+      } catch (_) {}
+    }, 0);
+  };
+
+  // ── suggestion chip clicks ────────────────────────────────────────
+  document.addEventListener('click', e => {
+    const chip = e.target.closest('[data-prompt]');
+    if (!chip) return;
+    document.dispatchEvent(new CustomEvent('loquix-submit', {
+      detail: { content: chip.dataset.prompt },
+      bubbles: true,
+      composed: true,
+    }));
+  });
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+            .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+</script>
+
+</body>
+</html>

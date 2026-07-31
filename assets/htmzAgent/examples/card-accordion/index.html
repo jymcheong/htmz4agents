@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AVARA · htmz demo</title>
+  <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+  <header>
+    <div class="logo">AVARA</div>
+    <div class="meta">Last scan: 2h ago &nbsp;·&nbsp; 847 hosts monitored &nbsp;·&nbsp; 214 findings</div>
+  </header>
+
+  <main>
+    <div class="top-bar">
+      <div class="overview-label">Top threats requiring action</div>
+      <div class="top-bar-actions">
+        <button class="load-btn secondary" id="test-btn" onclick="callAPI('error-sim', 'SYSTEM', null)">⚠ &nbsp;Simulate Backend Error</button>
+        <button class="load-btn secondary" id="upload-btn" onclick="enableTriage(this)">↑ &nbsp;Upload scan result</button>
+        <button class="load-btn" id="triage-btn" disabled onclick="runTriage()">▶ &nbsp;Run triage</button>
+      </div>
+    </div>
+
+    <div id="triage-area" class="card-stack">
+      <div id="card-container">
+        <div class="placeholder">Triage not yet run — click Run triage to begin.</div>
+      </div>
+      <div id="host-002-card" class="hidden"></div>
+      <div id="host-003-card" class="hidden"></div>
+    </div>
+
+    <div id="queue-link" class="queue-link hidden">
+      + 211 lower-priority findings &nbsp;<a href="#">Review queue →</a>
+    </div>
+
+    <iframe hidden name="htmz"
+      onload="setTimeout(()=>document.querySelector(contentWindow.location.hash)
+        ?.replaceWith(...contentWindow.document.body.childNodes),0)">
+    </iframe>
+  </main>
+
+  <!-- API response modal -->
+  <div id="api-modal" class="modal-overlay" style="display:none" onclick="handleOverlayClick(event)">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title" id="modal-title">—</span>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-host" id="modal-host">—</div>
+      <div class="modal-endpoint" id="modal-endpoint">—</div>
+      <div id="modal-response">
+        <div class="modal-status pending" id="modal-status">
+          <div class="modal-status-dot"></div>
+          <span id="modal-status-text">Dispatching…</span>
+        </div>
+        <div class="modal-detail" id="modal-detail"></div>
+      </div>
+      <div id="modal-error"></div>
+      <button class="modal-dismiss" id="modal-dismiss" style="display:none" onclick="closeModal()">
+        Dismiss
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ── htmz triage loader ──────────────────────────────────────────────────
+    let step = 0;
+    const FRAGMENT_TIMEOUT = 5000;
+    const cards = [
+      { href: 'fragments/host-001-card.html#card-container', slot: 'card-container' },
+      { href: 'fragments/host-002-card.html#host-002-card',  slot: 'host-002-card'  },
+      { href: 'fragments/host-003-card.html#host-003-card',  slot: 'host-003-card'  },
+    ];
+
+    function errorCard(id, msg) {
+      return `<div id="${id}" class="error-card">
+        <div class="card-body">
+          <div class="error-state">
+            <span class="error-icon">⚠</span>
+            <span>${msg}</span>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    function loadFragment(href, slotId) {
+      const slot = document.getElementById(slotId);
+      const hasContent = slot && !slot.hasAttribute('data-loading') && slot.children.length > 0;
+
+      if (hasContent) {
+        // Slot has real content — hover shimmer overlay, don't replace
+        slot.setAttribute('data-loading', '');
+        slot.classList.add('fragment-loading');
+      }
+      // Skeleton slots already have data-loading from skeletonCard()
+
+      const a = document.createElement('a');
+      a.href = href;
+      a.target = 'htmz';
+      a.click();
+
+      // Watchdog — fires if server never responds
+      setTimeout(() => {
+        const s = document.getElementById(slotId);
+        if (s && s.hasAttribute('data-loading')) {
+          s.outerHTML = errorCard(slotId, 'Request timed out — server unreachable');
+        }
+      }, FRAGMENT_TIMEOUT);
+    }
+
+    function loadNext() {
+      if (step >= cards.length) return;
+      const { href, slot } = cards[step];
+      loadFragment(href, slot);
+      step++;
+      if (step < cards.length) {
+        setTimeout(loadNext, 320);
+      } else {
+        setTimeout(() => {
+          document.getElementById('queue-link').classList.remove('hidden');
+          document.getElementById('triage-btn').textContent = '✓  Triage complete';
+          document.getElementById('triage-btn').disabled = true;
+        }, 400);
+      }
+    }
+
+    function skeletonCard(id) {
+      return `<div id="${id}" class="skeleton-card" data-loading>
+        <div class="card-body">
+          <div class="top-row">
+            <div>
+              <div class="skel skel-title"></div>
+              <div class="skel skel-sub"></div>
+            </div>
+            <div class="badge-group">
+              <div class="skel skel-badge"></div>
+              <div class="skel skel-badge"></div>
+            </div>
+          </div>
+          <div class="skel skel-verdict"></div>
+          <div class="stats-row">
+            <div class="skel skel-pill"></div>
+            <div class="skel skel-pill"></div>
+            <div class="skel skel-pill"></div>
+            <div class="skel skel-pill"></div>
+            <div class="skel skel-pill"></div>
+          </div>
+        </div>
+        <div class="skel skel-toggle"></div>
+      </div>`;
+    }
+
+    function enableTriage(btn) {
+      btn.textContent = '⏳  Uploading…';
+      btn.disabled = true;
+      setTimeout(() => {
+        btn.textContent = '✓  Scan uploaded';
+        document.getElementById('triage-btn').disabled = false;
+      }, 600);
+    }
+
+    function runTriage() {
+      step = 0;
+      document.getElementById('queue-link').classList.add('hidden');
+      document.getElementById('triage-btn').textContent = '⏳  Running…';
+      document.getElementById('triage-btn').disabled = true;
+      document.getElementById('triage-area').innerHTML =
+        skeletonCard('card-container') +
+        skeletonCard('host-002-card') +
+        skeletonCard('host-003-card');
+      setTimeout(loadNext, 400);
+    }
+
+    function toggleAccordion(btn) {
+      const card = btn.closest('.host-card');
+      const panel = card.querySelector('.detail-panel');
+      const arrow = btn.querySelector('.accordion-arrow');
+      const isOpen = panel.classList.contains('open');
+      panel.classList.toggle('open', !isOpen);
+      arrow.classList.toggle('open', !isOpen);
+      btn.setAttribute('aria-expanded', String(!isOpen));
+    }
+
+    // ── API call handler (fragment buttons call this) ───────────────────────
+    // Fragments have no JS of their own — their onclick handlers reference
+    // this global function after htmz moves their nodes into this document.
+    async function callAPI(action, host, target) {
+      const isNotify = action === 'inform-owner';
+      const isError  = action === 'error-sim';
+
+      // Set stable header fields first
+      document.getElementById('modal-title').textContent    = isNotify ? 'Inform Owner' : (isError ? 'Simulate Error' : 'Rescan Asset');
+      document.getElementById('modal-host').textContent     = host;
+      document.getElementById('modal-endpoint').textContent = isNotify ? `Notifying: ${target}` : (isError ? 'Triggering backend failure' : 'Queuing agent scan job');
+      document.getElementById('modal-dismiss').style.display = 'none';
+      document.getElementById('modal-error').innerHTML = ''; // Reset error zone
+
+      // Write pending state into response container
+      document.getElementById('modal-response').innerHTML = `
+        <div class="modal-status pending">
+          <div class="modal-status-dot"></div>
+          <span>${isNotify ? 'Dispatching notification…' : (isError ? 'Triggering failure…' : 'Submitting rescan request…')}</span>
+        </div>
+      `;
+
+      // Show modal now — content is ready
+      document.getElementById('api-modal').style.display = 'flex';
+
+      const endpoint = isNotify ? '/api/notify' : (isError ? '/error-sim' : '/api/rescan');
+
+      try {
+        const res  = await fetch(endpoint, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify(isNotify ? { host, recipient: target } : { host })
+        });
+        const html = await res.text();
+
+        if (res.ok) {
+          document.getElementById('modal-response').innerHTML = html;
+          if (isError) {
+            setTimeout(() => { closeModal(); runTriage(); }, 1400);
+          }
+        } else {
+          // Error handling path — target the error zone
+          document.getElementById('modal-response').innerHTML = '';
+          document.getElementById('modal-error').innerHTML = html;
+        }
+      } catch (e) {
+        document.getElementById('modal-response').innerHTML = `
+          <div class="modal-status error">
+            <div class="modal-status-dot"></div>
+            <span>Network error: ${e.message}</span>
+          </div>
+        `;
+      }
+      
+      document.getElementById('modal-dismiss').style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('api-modal').style.display = 'none';
+    }
+
+    function handleOverlayClick(e) {
+      if (e.target === document.getElementById('api-modal')) closeModal();
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeModal();
+    });
+  </script>
+</body>
+</html>
